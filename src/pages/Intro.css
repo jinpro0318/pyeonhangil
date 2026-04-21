@@ -1,0 +1,93 @@
+.intro-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 22px 32px;
+}
+
+.intro-skip {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.skip-btn {
+  font-size: 15px;
+  color: var(--ink-500);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.intro-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+}
+
+.intro-illust {
+  background: var(--primary-soft);
+  border-radius: 24px;
+  padding: 48px;
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+}
+
+.intro-emoji {
+  font-size: 96px;
+  line-height: 1;
+}
+
+.intro-title {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.03em;
+  text-align: center;
+  white-space: pre-line;
+}
+
+.intro-sub {
+  font-size: 16px;
+  color: var(--ink-500);
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.intro-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 24px;
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.dots .d {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: all 0.2s;
+}
+
+.dots .d.on {
+  background: var(--primary);
+  width: 24px;
+  border-radius: 100px;
+}

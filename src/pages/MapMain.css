@@ -1,0 +1,126 @@
+.map-page {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-container {
+  position: absolute;
+  inset: 0;
+  background: #f0f4f7;
+}
+
+.map-loading,
+.map-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-muted);
+  color: var(--ink-500);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  padding: 20px;
+  gap: 8px;
+}
+
+.map-error-icon {
+  font-size: 32px;
+}
+
+.map-error-title {
+  font-weight: 700;
+  color: var(--ink-700);
+}
+
+.map-error-msg {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.map-search-bar {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  background: white;
+  border-radius: 16px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-lg);
+  z-index: 20;
+}
+
+.map-search-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--ink-500);
+  font-weight: 600;
+  padding: 6px 0;
+}
+
+.map-search-icon {
+  font-size: 18px;
+}
+
+.map-voice-btn {
+  width: 36px;
+  height: 36px;
+  background: var(--primary);
+  border-radius: 10px;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.map-filter {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  right: 14px;
+  background: white;
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: var(--shadow-lg);
+  z-index: 20;
+}
+
+.map-filter-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-700);
+  margin-bottom: 10px;
+}
+
+.map-filter-btns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.map-filter-btn {
+  padding: 10px 4px;
+  background: var(--bg-muted);
+  color: var(--ink-700);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  transition: all 0.15s;
+}
+
+.map-filter-emoji {
+  font-size: 18px;
+}

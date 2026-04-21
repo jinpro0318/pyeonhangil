@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4B8FF8"/>
+      <stop offset="100%" stop-color="#1B64DA"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="128" height="128" fill="url(#bg)"/>
+
+  <!-- 구부러진 길 (배경 라인) -->
+  <path d="M 28 98 Q 50 70, 64 60 T 100 28"
+        stroke="white" stroke-width="10" stroke-linecap="round"
+        fill="none" opacity="0.22"/>
+
+  <!-- 구부러진 길 (점선 — 걸음 자국 느낌) -->
+  <path d="M 28 98 Q 50 70, 64 60 T 100 28"
+        stroke="white" stroke-width="5" stroke-linecap="round"
+        fill="none" stroke-dasharray="1 10"/>
+
+  <!-- 도착점 핀 (우측 상단) -->
+  <circle cx="100" cy="28" r="11" fill="white"/>
+  <circle cx="100" cy="28" r="5.5" fill="#1B64DA"/>
+
+  <!-- 출발 발자국 (좌측 하단) -->
+  <ellipse cx="28" cy="98" rx="8.5" ry="10.5" fill="white"
+           transform="rotate(-20 28 98)"/>
+  <circle cx="23.5" cy="86" r="2.8" fill="white"/>
+  <circle cx="30" cy="84" r="2.2" fill="white"/>
+</svg>

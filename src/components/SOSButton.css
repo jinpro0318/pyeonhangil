@@ -1,0 +1,22 @@
+.sos-fab {
+  position: absolute;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  background: var(--danger);
+  color: white;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-danger);
+  z-index: 15;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.sos-fab:active {
+  transform: scale(0.95);
+}

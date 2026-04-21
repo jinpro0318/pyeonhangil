@@ -1,0 +1,61 @@
+.family-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.family-header {
+  padding: 14px 22px 8px;
+}
+
+.family-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.family-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.family-banner {
+  background: var(--primary);
+  color: white;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  box-shadow: var(--shadow-primary);
+}
+
+.family-banner-icon {
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.family-banner-label {
+  font-size: 14px;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+.family-banner-title {
+  font-size: 17px;
+  font-weight: 800;
+  margin-top: 2px;
+  letter-spacing: -0.02em;
+}
