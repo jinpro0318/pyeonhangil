@@ -30,35 +30,59 @@ function loadKakaoSDK() {
   }
 
   sdkPromise = new Promise((resolve, reject) => {
-    // 카카오 SDK는 도메인이 등록되지 않으면 콘솔에 에러를 찍지만
-    // script.onerror/onload는 그대로 onload 가 호출됨.
-    // 그래서 onload 후 window.kakao 존재 여부로 1차 판별.
-    const script = document.createElement('script')
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${key}&libraries=services&autoload=false`
-    script.async = true
-    script.onload = () => {
-      if (!window.kakao || !window.kakao.maps) {
-        sdkPromise = null
-        reject(
-          new Error(
-            '카카오맵 SDK는 받았지만 초기화에 실패했어요. ' +
-              '카카오 개발자 콘솔에서 현재 도메인이 Web 플랫폼에 등록되어 있는지 확인해주세요.'
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+
+    // 도메인 미등록을 빠르게 감지: 카카오는 JSON 에러를 응답하므로
+    // 사전에 fetch로 한 번 확인하고, 정상이면 SDK 스크립트를 로드한다.
+    fetch(`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${key}&libraries=services&autoload=false`)
+      .then((res) => res.text())
+      .then((body) => {
+        if (body.includes('AccessDeniedError') || body.includes('domain mismatched')) {
+          sdkPromise = null
+          reject(
+            new Error(
+              `카카오 콘솔에 현재 도메인이 등록되어 있지 않아요.\n` +
+                `→ developers.kakao.com → 내 앱 → 앱 설정 → 플랫폼 → Web 에 다음을 등록해주세요:\n` +
+                `${origin}`
+            )
           )
-        )
-        return
+          return
+        }
+        if (body.includes('errorType')) {
+          sdkPromise = null
+          reject(new Error(`카카오 SDK 응답 오류: ${body.slice(0, 200)}`))
+          return
+        }
+
+        const script = document.createElement('script')
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${key}&libraries=services&autoload=false`
+        script.async = true
+        script.onload = () => {
+          if (!window.kakao || !window.kakao.maps) {
+            sdkPromise = null
+            reject(new Error('카카오맵 SDK 초기화에 실패했어요.'))
+            return
+          }
+          window.kakao.maps.load(() => resolve(window.kakao))
+        }
+        script.onerror = () => {
+          sdkPromise = null
+          reject(new Error('카카오맵 SDK 파일을 불러오지 못했어요. 광고 차단기를 확인해주세요.'))
+        }
+        document.head.appendChild(script)
+      })
+      .catch((e) => {
+        sdkPromise = null
+        reject(new Error(`카카오 서버에 연결할 수 없어요: ${e.message}`))
+      })
+
+    // 안전망: 10초 내 응답 없으면 에러
+    setTimeout(() => {
+      if (!window.kakao?.maps?.LatLng) {
+        sdkPromise = null
+        reject(new Error('카카오맵 응답이 너무 오래 걸려요. 새로고침해주세요.'))
       }
-      window.kakao.maps.load(() => resolve(window.kakao))
-    }
-    script.onerror = () => {
-      sdkPromise = null
-      reject(
-        new Error(
-          '카카오맵 SDK 파일을 불러오지 못했어요. ' +
-            '인터넷 연결 또는 광고 차단 확장 프로그램을 확인해주세요.'
-        )
-      )
-    }
-    document.head.appendChild(script)
+    }, 10000)
   })
 
   return sdkPromise
