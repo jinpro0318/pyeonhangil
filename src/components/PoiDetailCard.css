@@ -23,6 +23,7 @@
   gap: 12px;
   animation: poi-slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12);
+  max-height: 85vh;
 }
 
 @keyframes poi-slide-up {
@@ -42,6 +43,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .poi-card-icon {
@@ -74,6 +76,16 @@
   margin-top: 2px;
 }
 
+.poi-card-rating {
+  color: #F59E0B;
+  font-weight: 700;
+}
+
+.poi-card-rating-cnt {
+  color: var(--ink-400);
+  font-weight: 500;
+}
+
 .poi-card-close {
   width: 32px;
   height: 32px;
@@ -87,14 +99,42 @@
   flex-shrink: 0;
 }
 
+.poi-card-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  scrollbar-width: none;
+}
+.poi-card-body::-webkit-scrollbar { display: none; }
+
+.poi-card-photos {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin: 4px -22px 8px;
+  padding: 0 22px;
+}
+
+.poi-card-photo {
+  width: 140px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
+  background: var(--bg-muted);
+}
+
 .poi-card-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   font-size: 14.5px;
   color: var(--ink-700);
   font-weight: 500;
   padding: 4px 0;
+  line-height: 1.5;
 }
 
 .poi-card-row-icon {
@@ -110,21 +150,42 @@
   font-weight: 700;
 }
 
-.poi-card-source {
-  font-size: 12px;
-  color: var(--ink-400);
-  text-align: right;
-  margin-top: -4px;
-}
-
 .poi-card-cat {
   font-size: 13px;
   color: var(--ink-500);
 }
 
-.poi-card-actions {
+.poi-card-tags {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.poi-card-tag {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 100px;
+  background: var(--bg-muted);
+  color: var(--ink-700);
+}
+
+.poi-card-tag.accessible {
+  background: var(--cat-elev-soft);
+  color: var(--cat-elev);
+}
+
+.poi-card-loading {
+  font-size: 12px;
+  color: var(--ink-400);
+  text-align: center;
+  padding: 6px 0;
+}
+
+.poi-card-source {
+  font-size: 12px;
+  color: var(--ink-400);
+  text-align: right;
+  margin-top: 2px;
 }
