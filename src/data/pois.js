@@ -7,9 +7,13 @@
 export const POI_TYPES = {
   rest: { label: '쉼터', emoji: '🪑', color: '#22C55E' },
   toilet: { label: '화장실', emoji: '🚻', color: '#3182F6' },
-  cross: { label: '안전횡단', emoji: '🚸', color: '#F04452' },
+  cross: { label: '무장애 시설', emoji: '🚸', color: '#F04452' },
   elev: { label: '엘리베이터', emoji: '🛗', color: '#A855F7' },
   ramp: { label: '경사로', emoji: '📐', color: '#F59E0B' },
+  hospital: { label: '병원', emoji: '🏥', color: '#EF4444' },
+  pharmacy: { label: '약국', emoji: '💊', color: '#06B6D4' },
+  subway: { label: '지하철역', emoji: '🚇', color: '#0EA5E9' },
+  public: { label: '공공기관', emoji: '🏛️', color: '#6366F1' },
 }
 
 // 서울 종로구 인근 샘플 POI

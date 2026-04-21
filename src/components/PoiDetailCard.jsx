@@ -63,13 +63,33 @@ export default function PoiDetailCard({ poi, onClose }) {
           </div>
         )}
 
+        {poi.categoryName && (
+          <div className="poi-card-row">
+            <span className="poi-card-row-icon">🏷️</span>
+            <span className="poi-card-cat">{poi.categoryName}</span>
+          </div>
+        )}
+
         {poi.source && (
           <div className="poi-card-source">출처 · {poi.source}</div>
         )}
 
-        <button className="btn large" onClick={handleNavigate}>
-          여기로 가는 편한 길
-        </button>
+        <div className="poi-card-actions">
+          <button className="btn large" onClick={handleNavigate}>
+            여기로 가는 편한 길
+          </button>
+          {poi.url && (
+            <a
+              className="btn secondary"
+              href={poi.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none' }}
+            >
+              카카오맵에서 자세히 보기 ›
+            </a>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -116,3 +116,15 @@
   text-align: right;
   margin-top: -4px;
 }
+
+.poi-card-cat {
+  font-size: 13px;
+  color: var(--ink-500);
+}
+
+.poi-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}

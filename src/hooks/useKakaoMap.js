@@ -73,6 +73,10 @@ const MARKER_COLORS = {
   toilet: '#3182F6',
   elev: '#A855F7',
   ramp: '#F59E0B',
+  hospital: '#EF4444',
+  pharmacy: '#06B6D4',
+  subway: '#0EA5E9',
+  public: '#6366F1',
   start: '#22C55E',
   end: '#3182F6',
 }
@@ -82,6 +86,10 @@ const MARKER_ICONS = {
   toilet: '🚻',
   elev: '🛗',
   ramp: '📐',
+  hospital: '🏥',
+  pharmacy: '💊',
+  subway: '🚇',
+  public: '🏛️',
   start: '🟢',
   end: '🏁',
 }

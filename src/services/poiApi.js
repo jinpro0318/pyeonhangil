@@ -18,10 +18,19 @@ const STATIC_SOURCES = {
 
 const KAKAO_QUERIES = {
   toilet: ['공중화장실', '장애인화장실'],
-  rest: ['무더위쉼터'],
+  rest: ['무더위쉼터', '경로당', '노인복지관'],
   elev: [],
-  cross: [],
+  cross: ['휠체어', '베리어프리'],
   ramp: ['경사로'],
+}
+
+// 카카오 카테고리 코드 (카카오맵이 내부적으로 쓰는 분류)
+//   HP8 병원, PM9 약국, SW8 지하철역, PO3 공공기관
+const KAKAO_CATEGORIES = {
+  hospital: ['HP8'],
+  pharmacy: ['PM9'],
+  subway: ['SW8'],
+  public: ['PO3'],
 }
 
 // 정부 공공데이터 ↔ 우리 type 매핑
@@ -59,9 +68,22 @@ async function loadGeojson(url) {
   return p
 }
 
-async function fetchKakaoLocal(query, type, center) {
+async function fetchKakaoLocal(query, type, center, radius = 1000) {
   if (!center?.lat || !center?.lng) return []
-  const url = `/api/local?query=${encodeURIComponent(query)}&x=${center.lng}&y=${center.lat}&radius=1000&type=${type}`
+  const url = `/api/local?query=${encodeURIComponent(query)}&x=${center.lng}&y=${center.lat}&radius=${radius}&type=${type}`
+  try {
+    const r = await fetch(url)
+    if (!r.ok) return []
+    const data = await r.json()
+    return data.pois || []
+  } catch {
+    return []
+  }
+}
+
+async function fetchKakaoCategory(categoryCode, type, center, radius = 1000) {
+  if (!center?.lat || !center?.lng) return []
+  const url = `/api/local?categoryCode=${categoryCode}&x=${center.lng}&y=${center.lat}&radius=${radius}&type=${type}`
   try {
     const r = await fetch(url)
     if (!r.ok) return []
@@ -119,7 +141,8 @@ export async function fetchPois({ center, radius = 1500, types = ['rest', 'toile
   const tasks = []
   for (const t of types) {
     for (const url of STATIC_SOURCES[t] || []) tasks.push(loadGeojson(url))
-    for (const q of KAKAO_QUERIES[t] || []) tasks.push(fetchKakaoLocal(q, t, center))
+    for (const q of KAKAO_QUERIES[t] || []) tasks.push(fetchKakaoLocal(q, t, center, radius))
+    for (const c of KAKAO_CATEGORIES[t] || []) tasks.push(fetchKakaoCategory(c, t, center, radius))
     if (GOV_TYPE_MAP[t]) tasks.push(fetchGovData(t, null))
   }
 
@@ -140,11 +163,18 @@ export async function fetchPois({ center, radius = 1500, types = ['rest', 'toile
 export async function fetchPoisInBbox({ bbox, types = ['rest', 'toilet', 'elev', 'cross'] }) {
   if (!bbox) return []
   const center = bboxCenter(bbox)
+  // bbox 대각선 길이의 절반을 카카오 radius로 사용
+  const diag = haversine(
+    { lat: bbox.minLat, lng: bbox.minLng },
+    { lat: bbox.maxLat, lng: bbox.maxLng }
+  )
+  const radius = Math.min(20000, Math.max(500, Math.ceil(diag / 2)))
 
   const tasks = []
   for (const t of types) {
     for (const url of STATIC_SOURCES[t] || []) tasks.push(loadGeojson(url))
-    for (const q of KAKAO_QUERIES[t] || []) tasks.push(fetchKakaoLocal(q, t, center))
+    for (const q of KAKAO_QUERIES[t] || []) tasks.push(fetchKakaoLocal(q, t, center, radius))
+    for (const c of KAKAO_CATEGORIES[t] || []) tasks.push(fetchKakaoCategory(c, t, center, radius))
     if (GOV_TYPE_MAP[t]) tasks.push(fetchGovData(t, bbox))
   }
 

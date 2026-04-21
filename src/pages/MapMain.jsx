@@ -9,7 +9,7 @@ import SOSButton from '../components/SOSButton'
 import PoiDetailCard from '../components/PoiDetailCard'
 import './MapMain.css'
 
-const FILTERS = ['rest', 'toilet', 'cross', 'elev']
+const FILTERS = ['rest', 'toilet', 'elev', 'hospital', 'pharmacy', 'subway', 'cross']
 
 // 50m 이상 이동했을 때만 다시 fetch
 function quantize(p, precision = 3) {
