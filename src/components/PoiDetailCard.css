@@ -1,0 +1,118 @@
+.poi-card-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  animation: poi-fade 0.18s ease-out;
+}
+
+@keyframes poi-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.poi-card {
+  width: 100%;
+  background: white;
+  border-radius: 24px 24px 0 0;
+  padding: 8px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: poi-slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12);
+}
+
+@keyframes poi-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.poi-card-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--bg-hover);
+  margin: 6px auto 4px;
+}
+
+.poi-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.poi-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.poi-card-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.poi-card-name {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink-900);
+  word-break: keep-all;
+}
+
+.poi-card-type {
+  font-size: 13px;
+  color: var(--ink-500);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.poi-card-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-muted);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink-500);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.poi-card-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  color: var(--ink-700);
+  font-weight: 500;
+  padding: 4px 0;
+}
+
+.poi-card-row-icon {
+  width: 22px;
+  text-align: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.poi-card-row a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.poi-card-source {
+  font-size: 12px;
+  color: var(--ink-400);
+  text-align: right;
+  margin-top: -4px;
+}

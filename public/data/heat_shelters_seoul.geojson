@@ -1,0 +1,30 @@
+{
+  "type": "FeatureCollection",
+  "name": "heat_shelters_seoul",
+  "_meta": {
+    "title": "서울 무더위쉼터 (시드)",
+    "source": "전국무더위쉼터표준데이터 (data.go.kr 15013199) 서울 발췌",
+    "updated": "2026-04-21",
+    "operatingPeriod": "매년 5/15 ~ 9/30"
+  },
+  "features": [
+    { "type": "Feature", "properties": { "id": "shelter_jongno_1", "type": "rest", "name": "종로구청 무더위쉼터", "description": "1층 민원실 옆 · 평일 09–18시 · 에어컨", "source": "행정안전부" }, "geometry": { "type": "Point", "coordinates": [126.978900, 37.573200] } },
+    { "type": "Feature", "properties": { "id": "shelter_jongno_2", "type": "rest", "name": "탑골공원 노인쉼터", "description": "야외 그늘 + 의자", "source": "종로구" }, "geometry": { "type": "Point", "coordinates": [126.988401, 37.571191] } },
+    { "type": "Feature", "properties": { "id": "shelter_jongno_3", "type": "rest", "name": "삼청동 주민센터 쉼터", "description": "1층 로비 · 09–18시", "source": "종로구" }, "geometry": { "type": "Point", "coordinates": [126.981400, 37.582400] } },
+    { "type": "Feature", "properties": { "id": "shelter_jongno_4", "type": "rest", "name": "혜화 노인복지관 쉼터", "description": "에어컨 · 휴게실", "source": "종로구" }, "geometry": { "type": "Point", "coordinates": [127.001771, 37.582333] } },
+    { "type": "Feature", "properties": { "id": "shelter_jung_1", "type": "rest", "name": "중구청 무더위쉼터", "description": "1층 로비", "source": "중구" }, "geometry": { "type": "Point", "coordinates": [126.997000, 37.564000] } },
+    { "type": "Feature", "properties": { "id": "shelter_jung_2", "type": "rest", "name": "남대문 노인복지관", "description": "에어컨", "source": "중구" }, "geometry": { "type": "Point", "coordinates": [126.974000, 37.559600] } },
+    { "type": "Feature", "properties": { "id": "shelter_yongsan_1", "type": "rest", "name": "용산도서관 무더위쉼터", "description": "1층 열람실 인접", "source": "용산구" }, "geometry": { "type": "Point", "coordinates": [126.978700, 37.541200] } },
+    { "type": "Feature", "properties": { "id": "shelter_seongdong_1", "type": "rest", "name": "성동구청 무더위쉼터", "description": "1층 로비", "source": "성동구" }, "geometry": { "type": "Point", "coordinates": [127.036900, 37.563400] } },
+    { "type": "Feature", "properties": { "id": "shelter_dongdaemun_1", "type": "rest", "name": "동대문 노인종합복지관", "description": "에어컨 · 09–18시", "source": "동대문구" }, "geometry": { "type": "Point", "coordinates": [127.039700, 37.574700] } },
+    { "type": "Feature", "properties": { "id": "shelter_mapo_1", "type": "rest", "name": "마포구청 무더위쉼터", "description": "1층 민원실", "source": "마포구" }, "geometry": { "type": "Point", "coordinates": [126.901100, 37.566200] } },
+    { "type": "Feature", "properties": { "id": "shelter_yeongdeungpo_1", "type": "rest", "name": "영등포구청 무더위쉼터", "description": "1층", "source": "영등포구" }, "geometry": { "type": "Point", "coordinates": [126.896400, 37.526100] } },
+    { "type": "Feature", "properties": { "id": "shelter_dongjak_1", "type": "rest", "name": "동작구청 무더위쉼터", "description": "1층 로비", "source": "동작구" }, "geometry": { "type": "Point", "coordinates": [126.939600, 37.512500] } },
+    { "type": "Feature", "properties": { "id": "shelter_gwanak_1", "type": "rest", "name": "관악구청 무더위쉼터", "description": "1층 로비", "source": "관악구" }, "geometry": { "type": "Point", "coordinates": [126.951600, 37.478200] } },
+    { "type": "Feature", "properties": { "id": "shelter_seocho_1", "type": "rest", "name": "서초구청 무더위쉼터", "description": "1층", "source": "서초구" }, "geometry": { "type": "Point", "coordinates": [127.032700, 37.483600] } },
+    { "type": "Feature", "properties": { "id": "shelter_gangnam_1", "type": "rest", "name": "강남구청 무더위쉼터", "description": "1층 민원실", "source": "강남구" }, "geometry": { "type": "Point", "coordinates": [127.047600, 37.517300] } },
+    { "type": "Feature", "properties": { "id": "shelter_songpa_1", "type": "rest", "name": "송파구청 무더위쉼터", "description": "1층", "source": "송파구" }, "geometry": { "type": "Point", "coordinates": [127.105900, 37.514700] } },
+    { "type": "Feature", "properties": { "id": "shelter_seongbuk_1", "type": "rest", "name": "성북구청 무더위쉼터", "description": "1층", "source": "성북구" }, "geometry": { "type": "Point", "coordinates": [127.016800, 37.589100] } },
+    { "type": "Feature", "properties": { "id": "shelter_eunpyeong_1", "type": "rest", "name": "은평구청 무더위쉼터", "description": "1층", "source": "은평구" }, "geometry": { "type": "Point", "coordinates": [126.929200, 37.602800] } }
+  ]
+}

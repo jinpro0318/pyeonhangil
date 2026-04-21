@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { haversine } from '../utils/geo'
 
 /**
  * 편한길 GPS 훅
@@ -8,17 +9,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
  */
 
 const SEOUL_DEFAULT = { lat: 37.5704, lng: 126.9927 } // 종로
-
-// 두 좌표 간 거리 (미터)
-function haversine(a, b) {
-  const R = 6371e3
-  const φ1 = (a.lat * Math.PI) / 180
-  const φ2 = (b.lat * Math.PI) / 180
-  const Δφ = ((b.lat - a.lat) * Math.PI) / 180
-  const Δλ = ((b.lng - a.lng) * Math.PI) / 180
-  const x = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2
-  return 2 * R * Math.asin(Math.sqrt(x))
-}
 
 export function useGPS(options = {}) {
   const {

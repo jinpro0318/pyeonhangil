@@ -1,0 +1,27 @@
+{
+  "type": "FeatureCollection",
+  "name": "jangsu_chairs_seoul",
+  "_meta": {
+    "title": "서울 장수의자(어르신 횡단보도 대기 의자) 시드",
+    "source": "자치구 공개 자료(영등포·동작·관악 등) 일부 큐레이션",
+    "updated": "2026-04-21",
+    "note": "통합 공개 API 부재로 시드 데이터(MVP). 운영 시 자치구별 자료로 갱신 필요."
+  },
+  "features": [
+    { "type": "Feature", "properties": { "id": "jangsu_jongno_1", "type": "rest", "name": "장수의자 (광화문 사거리 북측)", "description": "신호대기 어르신용", "source": "종로구청" }, "geometry": { "type": "Point", "coordinates": [126.976831, 37.572005] } },
+    { "type": "Feature", "properties": { "id": "jangsu_jongno_2", "type": "rest", "name": "장수의자 (종각 사거리 동측)", "description": "신호대기용", "source": "종로구청" }, "geometry": { "type": "Point", "coordinates": [126.983611, 37.570451] } },
+    { "type": "Feature", "properties": { "id": "jangsu_jongno_3", "type": "rest", "name": "장수의자 (종로3가 4번출구 옆)", "description": "그늘 있음", "source": "종로구청" }, "geometry": { "type": "Point", "coordinates": [126.992511, 37.571221] } },
+    { "type": "Feature", "properties": { "id": "jangsu_jongno_4", "type": "rest", "name": "장수의자 (탑골공원 앞)", "description": "정류장 옆", "source": "종로구청" }, "geometry": { "type": "Point", "coordinates": [126.988401, 37.571191] } },
+    { "type": "Feature", "properties": { "id": "jangsu_jongno_5", "type": "rest", "name": "장수의자 (종로5가 약국거리)", "description": "보행 약자 우선", "source": "종로구청" }, "geometry": { "type": "Point", "coordinates": [127.001401, 37.570401] } },
+    { "type": "Feature", "properties": { "id": "jangsu_jung_1", "type": "rest", "name": "장수의자 (을지로3가 사거리)", "description": "신호대기용", "source": "중구청" }, "geometry": { "type": "Point", "coordinates": [126.991901, 37.566801] } },
+    { "type": "Feature", "properties": { "id": "jangsu_jung_2", "type": "rest", "name": "장수의자 (명동성당 앞 사거리)", "description": "쉘터 인접", "source": "중구청" }, "geometry": { "type": "Point", "coordinates": [126.988001, 37.563401] } },
+    { "type": "Feature", "properties": { "id": "jangsu_dongjak_1", "type": "rest", "name": "장수의자 (사당역 4번출구)", "description": "정류장 옆", "source": "동작구청" }, "geometry": { "type": "Point", "coordinates": [126.981801, 37.476801] } },
+    { "type": "Feature", "properties": { "id": "jangsu_dongjak_2", "type": "rest", "name": "장수의자 (이수역 8번출구)", "description": "쉘터 인접", "source": "동작구청" }, "geometry": { "type": "Point", "coordinates": [126.981401, 37.486901] } },
+    { "type": "Feature", "properties": { "id": "jangsu_yeongdeungpo_1", "type": "rest", "name": "장수의자 (영등포역 앞)", "description": "주이용 노인 다수", "source": "영등포구청" }, "geometry": { "type": "Point", "coordinates": [126.907401, 37.515401] } },
+    { "type": "Feature", "properties": { "id": "jangsu_yeongdeungpo_2", "type": "rest", "name": "장수의자 (당산역 1번출구)", "description": "그늘 있음", "source": "영등포구청" }, "geometry": { "type": "Point", "coordinates": [126.902301, 37.534401] } },
+    { "type": "Feature", "properties": { "id": "jangsu_gwanak_1", "type": "rest", "name": "장수의자 (서울대입구역 사거리)", "description": "신호대기용", "source": "관악구청" }, "geometry": { "type": "Point", "coordinates": [126.952901, 37.481401] } },
+    { "type": "Feature", "properties": { "id": "jangsu_mapo_1", "type": "rest", "name": "장수의자 (홍대입구역 9번출구)", "description": "신호대기용", "source": "마포구청" }, "geometry": { "type": "Point", "coordinates": [126.923201, 37.557501] } },
+    { "type": "Feature", "properties": { "id": "jangsu_seongdong_1", "type": "rest", "name": "장수의자 (왕십리역 사거리)", "description": "그늘 있음", "source": "성동구청" }, "geometry": { "type": "Point", "coordinates": [127.039701, 37.561401] } },
+    { "type": "Feature", "properties": { "id": "jangsu_gangnam_1", "type": "rest", "name": "장수의자 (강남역 11번출구 옆)", "description": "정류장 인접", "source": "강남구청" }, "geometry": { "type": "Point", "coordinates": [127.028001, 37.498001] } }
+  ]
+}

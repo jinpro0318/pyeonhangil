@@ -1,0 +1,42 @@
+{
+  "type": "FeatureCollection",
+  "name": "subway_elevators_seoul",
+  "_meta": {
+    "title": "서울 지하철역 엘리베이터(주요역 시드)",
+    "source": "서울교통공사 OA-21212 / 공공데이터포털 15098158 발췌",
+    "updated": "2026-04-21",
+    "license": "공공데이터 (출처표시)"
+  },
+  "features": [
+    { "type": "Feature", "properties": { "id": "elev_jongno3ga_5", "type": "elev", "name": "종로3가역 5번 출구 엘리베이터", "description": "1·3·5호선 환승, 지상↔대합실", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.992004, 37.571607] } },
+    { "type": "Feature", "properties": { "id": "elev_jongak", "type": "elev", "name": "종각역 엘리베이터", "description": "1번 출구 옆", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.983171, 37.570161] } },
+    { "type": "Feature", "properties": { "id": "elev_gwanghwamun", "type": "elev", "name": "광화문역 엘리베이터", "description": "5호선 1번/9번 출구", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.976620, 37.571607] } },
+    { "type": "Feature", "properties": { "id": "elev_cityhall", "type": "elev", "name": "시청역 엘리베이터", "description": "1·2호선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.977437, 37.564718] } },
+    { "type": "Feature", "properties": { "id": "elev_euljiro1ga", "type": "elev", "name": "을지로입구역 엘리베이터", "description": "2호선 5번 출구", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.982929, 37.566295] } },
+    { "type": "Feature", "properties": { "id": "elev_euljiro3ga", "type": "elev", "name": "을지로3가역 엘리베이터", "description": "2·3호선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.991581, 37.566292] } },
+    { "type": "Feature", "properties": { "id": "elev_dongdaemun", "type": "elev", "name": "동대문역 엘리베이터", "description": "1·4호선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.009675, 37.571245] } },
+    { "type": "Feature", "properties": { "id": "elev_dongmyo", "type": "elev", "name": "동묘앞역 엘리베이터", "description": "1·6호선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.016388, 37.572839] } },
+    { "type": "Feature", "properties": { "id": "elev_anguk", "type": "elev", "name": "안국역 엘리베이터", "description": "3호선 1·2번 출구", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.985456, 37.576359] } },
+    { "type": "Feature", "properties": { "id": "elev_jongno5ga", "type": "elev", "name": "종로5가역 엘리베이터", "description": "1호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.001725, 37.570854] } },
+    { "type": "Feature", "properties": { "id": "elev_hyehwa", "type": "elev", "name": "혜화역 엘리베이터", "description": "4호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.001771, 37.582333] } },
+    { "type": "Feature", "properties": { "id": "elev_seoul_station", "type": "elev", "name": "서울역 엘리베이터", "description": "1·4·공항·KTX 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.972559, 37.554648] } },
+    { "type": "Feature", "properties": { "id": "elev_chungmuro", "type": "elev", "name": "충무로역 엘리베이터", "description": "3·4호선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.994027, 37.561196] } },
+    { "type": "Feature", "properties": { "id": "elev_dongguk", "type": "elev", "name": "동국대입구역 엘리베이터", "description": "3호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.000523, 37.557844] } },
+    { "type": "Feature", "properties": { "id": "elev_yaksu", "type": "elev", "name": "약수역 엘리베이터", "description": "3·6호선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.010624, 37.554480] } },
+    { "type": "Feature", "properties": { "id": "elev_hangangjin", "type": "elev", "name": "한강진역 엘리베이터", "description": "6호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.001027, 37.539579] } },
+    { "type": "Feature", "properties": { "id": "elev_itaewon", "type": "elev", "name": "이태원역 엘리베이터", "description": "6호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.994467, 37.534512] } },
+    { "type": "Feature", "properties": { "id": "elev_gangnam", "type": "elev", "name": "강남역 엘리베이터", "description": "2·신분당선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.027619, 37.497952] } },
+    { "type": "Feature", "properties": { "id": "elev_yeoksam", "type": "elev", "name": "역삼역 엘리베이터", "description": "2호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.036527, 37.500622] } },
+    { "type": "Feature", "properties": { "id": "elev_seolleung", "type": "elev", "name": "선릉역 엘리베이터", "description": "2·분당선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.048829, 37.504484] } },
+    { "type": "Feature", "properties": { "id": "elev_samseong", "type": "elev", "name": "삼성역 엘리베이터", "description": "2호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.063128, 37.508849] } },
+    { "type": "Feature", "properties": { "id": "elev_konkuk", "type": "elev", "name": "건대입구역 엘리베이터", "description": "2·7호선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.070334, 37.540372] } },
+    { "type": "Feature", "properties": { "id": "elev_jamsil", "type": "elev", "name": "잠실역 엘리베이터", "description": "2·8호선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [127.100208, 37.513278] } },
+    { "type": "Feature", "properties": { "id": "elev_yeouinaru", "type": "elev", "name": "여의나루역 엘리베이터", "description": "5호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.932810, 37.527167] } },
+    { "type": "Feature", "properties": { "id": "elev_yeouido", "type": "elev", "name": "여의도역 엘리베이터", "description": "5·9호선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.924181, 37.521410] } },
+    { "type": "Feature", "properties": { "id": "elev_mapo", "type": "elev", "name": "마포역 엘리베이터", "description": "5호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.945675, 37.539385] } },
+    { "type": "Feature", "properties": { "id": "elev_hongik", "type": "elev", "name": "홍대입구역 엘리베이터", "description": "2·공항·경의중앙 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.923790, 37.557157] } },
+    { "type": "Feature", "properties": { "id": "elev_sinchon", "type": "elev", "name": "신촌역 엘리베이터", "description": "2호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.936713, 37.555134] } },
+    { "type": "Feature", "properties": { "id": "elev_ewha", "type": "elev", "name": "이대역 엘리베이터", "description": "2호선", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.945924, 37.556724] } },
+    { "type": "Feature", "properties": { "id": "elev_sadang", "type": "elev", "name": "사당역 엘리베이터", "description": "2·4호선 환승", "source": "서울교통공사" }, "geometry": { "type": "Point", "coordinates": [126.981583, 37.476559] } }
+  ]
+}

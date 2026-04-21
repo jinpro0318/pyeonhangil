@@ -1,58 +1,106 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGPS } from '../hooks/useGPS'
 import { useVoice } from '../hooks/useVoice'
 import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useAppState, WALK_STATES } from '../hooks/useAppState'
-import { SAMPLE_POIS } from '../data/pois'
+import { fetchPois } from '../services/poiApi'
+import { fetchRoute } from '../services/routeApi'
+import { formatDistance, estimateMinutes } from '../utils/geo'
 import SOSButton from '../components/SOSButton'
 import './Navigation.css'
 
 export default function Navigation() {
   const navigate = useNavigate()
   const mapRef = useRef(null)
-  const { state } = useAppState()
+  const { state, setActiveRoute } = useAppState()
   const { speak, isSpeaking } = useVoice()
   const { position, speedMeterPerMin, isStaying, isTracking, start } = useGPS({
     stayThresholdSeconds: 180,
   })
-  const [remainingTime, setRemainingTime] = useState(12)
   const walk = WALK_STATES[state.user.walkState]
-  const destination = state.destination?.name || '병원'
+  const destination = state.destination
+  const destName = destination?.name || '병원'
 
-  // 지도 - 주변 쉼터/화장실 표시
-  const nearbyPois = SAMPLE_POIS.filter((p) => ['rest', 'toilet'].includes(p.type)).slice(0, 4)
-  const { isReady: mapReady, error: mapError } = useKakaoMap(mapRef, {
-    pois: nearbyPois,
-    center: position,
-    myLocation: isTracking ? position : null,
-    level: 4,
-    draggable: false,
-  })
+  const [route, setRoute] = useState(state.activeRoute || null)
+  const [nearbyPois, setNearbyPois] = useState([])
 
+  // GPS 시작 + 경로 확보 (없으면 fetch)
   useEffect(() => {
     start()
-    speak(`${destination}까지 ${remainingTime}분 남았어요. 잠시 후 오른쪽으로 도세요`)
+    if (!state.activeRoute && position && destination?.lat) {
+      fetchRoute(position, { lat: destination.lat, lng: destination.lng }).then((r) => {
+        setRoute(r)
+        if (r) setActiveRoute(r)
+      })
+    }
     // eslint-disable-next-line
-  }, [])
+  }, [position?.lat, destination?.lat])
 
+  // 주변 쉼터/화장실
+  useEffect(() => {
+    if (!position) return
+    fetchPois({ center: position, types: ['rest', 'toilet'], radius: 800 }).then((list) =>
+      setNearbyPois(list.slice(0, 5))
+    )
+  }, [position?.lat])
+
+  // 체류 감지 → 쉬는중 화면
   useEffect(() => {
     if (isStaying) navigate('/resting')
   }, [isStaying, navigate])
 
+  const distanceMeters = route?.distanceMeters || 0
+  const remainingTime = distanceMeters
+    ? estimateMinutes(distanceMeters, walk.id)
+    : 12
+
+  // 첫 마운트 시 안내 1회
+  const announcedRef = useRef(false)
+  useEffect(() => {
+    if (announcedRef.current) return
+    if (!route && distanceMeters === 0) return
+    announcedRef.current = true
+    speak(`${destName}까지 ${remainingTime}분 남았어요. 안전하게 천천히 가세요`)
+    // eslint-disable-next-line
+  }, [route])
+
   const handleRepeat = () => {
-    speak(`${destination}까지 ${remainingTime}분 남았어요. 잠시 후 오른쪽으로 도세요`, {
-      immediate: true,
+    speak(`${destName}까지 ${remainingTime}분 남았어요`, { immediate: true })
+  }
+
+  const handleArrived = () => navigate('/arrived')
+
+  const polylines = route?.coords?.length > 1
+    ? [{ path: route.coords, color: '#3182F6', weight: 7, opacity: 0.85 }]
+    : []
+
+  // 도착 마커
+  const destPois = []
+  if (destination?.lat) {
+    destPois.push({
+      id: 'nav_end',
+      type: 'end',
+      name: destName,
+      lat: destination.lat,
+      lng: destination.lng,
     })
   }
 
-  const handleArrived = () => {
-    navigate('/arrived')
-  }
+  const mapPois = useMemo(() => [...destPois, ...nearbyPois], [destPois, nearbyPois])
+
+  const { isReady: mapReady, error: mapError } = useKakaoMap(mapRef, {
+    pois: mapPois,
+    polylines,
+    center: position,
+    myLocation: isTracking ? position : null,
+    level: 4,
+    draggable: true,
+    fitBoundsOnPolyline: true,
+  })
 
   return (
     <div className="nav-page">
-      {/* 상단 미니 지도 */}
       <div className="nav-map-wrap">
         <div className="nav-map" ref={mapRef}>
           {!mapReady && !mapError && (
@@ -79,7 +127,8 @@ export default function Navigation() {
       <div className="nav-body">
         <div className="nav-progress">
           <div className="nav-remain">
-            {destination}까지 {remainingTime}분 남음
+            {destName}까지 {remainingTime}분 남음
+            {distanceMeters > 0 && ` · ${formatDistance(distanceMeters)}`}
           </div>
           <span className={`chip ${walk.color}`}>{walk.emoji} 내 걸음</span>
         </div>
@@ -90,21 +139,18 @@ export default function Navigation() {
               <div
                 key={i}
                 className="nav-wave-bar"
-                style={{
-                  animationDelay: `${i * 0.1}s`,
-                  opacity: 0.6 + (i % 3) * 0.15,
-                }}
+                style={{ animationDelay: `${i * 0.1}s`, opacity: 0.6 + (i % 3) * 0.15 }}
               />
             ))}
           </div>
 
           <div className="nav-distance">
             <div className="nav-arrow">›</div>
-            <div className="nav-num">120<span>m</span></div>
+            <div className="nav-num">{formatDistance(distanceMeters || 120).replace(/[a-z]/i, '')}<span>m</span></div>
           </div>
 
-          <div className="nav-instruction">오른쪽으로 도세요</div>
-          <div className="nav-preview">"120미터 앞에서 오른쪽"</div>
+          <div className="nav-instruction">{destName} 방향</div>
+          <div className="nav-preview">"파란선을 따라가세요"</div>
         </div>
 
         <div className="nav-commands">
@@ -121,7 +167,10 @@ export default function Navigation() {
             <div className="nav-quick-emoji">😮‍💨</div>
             <div className="nav-quick-label">힘들어요</div>
           </button>
-          <button className="nav-quick-btn toilet" onClick={() => navigate('/map', { state: { filter: 'toilet' } })}>
+          <button
+            className="nav-quick-btn toilet"
+            onClick={() => navigate('/map', { state: { filter: 'toilet' } })}
+          >
             <div className="nav-quick-emoji">🚻</div>
             <div className="nav-quick-label">화장실</div>
           </button>

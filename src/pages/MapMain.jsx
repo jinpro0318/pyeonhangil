@@ -1,13 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useGPS } from '../hooks/useGPS'
-import { SAMPLE_POIS, POI_TYPES } from '../data/pois'
+import { POI_TYPES } from '../data/pois'
+import { fetchPois } from '../services/poiApi'
 import TabBar from '../components/TabBar'
 import SOSButton from '../components/SOSButton'
+import PoiDetailCard from '../components/PoiDetailCard'
 import './MapMain.css'
 
 const FILTERS = ['rest', 'toilet', 'cross', 'elev']
+
+// 50m 이상 이동했을 때만 다시 fetch
+function quantize(p, precision = 3) {
+  if (!p) return null
+  return { lat: Number(p.lat.toFixed(precision)), lng: Number(p.lng.toFixed(precision)) }
+}
 
 export default function MapMain() {
   const navigate = useNavigate()
@@ -15,6 +23,9 @@ export default function MapMain() {
   const mapRef = useRef(null)
   const initialFilter = location.state?.filter || null
   const [activeFilter, setActiveFilter] = useState(initialFilter)
+  const [pois, setPois] = useState([])
+  const [selectedPoi, setSelectedPoi] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const { position, start, isTracking } = useGPS({ enableStayDetection: false })
 
@@ -22,23 +33,40 @@ export default function MapMain() {
     start()
   }, [start])
 
-  const filteredPois = activeFilter
-    ? SAMPLE_POIS.filter((p) => p.type === activeFilter)
-    : SAMPLE_POIS
+  // 필터 또는 (대략적) 위치 변경 시에만 POI 재조회
+  const fetchKey = useMemo(
+    () => `${activeFilter || 'all'}|${JSON.stringify(quantize(position))}`,
+    [activeFilter, position]
+  )
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    const types = activeFilter ? [activeFilter] : FILTERS
+    fetchPois({ center: position, types, radius: 1500 })
+      .then((list) => {
+        if (!cancelled) setPois(list)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [fetchKey])
 
   const { isReady, error, setCenter } = useKakaoMap(mapRef, {
-    pois: filteredPois,
+    pois,
     center: position,
     myLocation: isTracking ? position : null,
+    onPoiClick: (poi) => setSelectedPoi(poi),
   })
 
   const handleRecenter = () => {
     if (position) setCenter(position.lat, position.lng)
   }
 
-  const handleRetry = () => {
-    window.location.reload()
-  }
+  const handleRetry = () => window.location.reload()
 
   return (
     <>
@@ -58,14 +86,11 @@ export default function MapMain() {
               <div className="map-error-help">
                 <div className="map-error-help-title">해결 방법</div>
                 <ol className="map-error-help-list">
-                  <li>Vercel → Settings → Environment Variables에 <code>VITE_KAKAO_JS_KEY</code> 등록</li>
-                  <li>카카오 개발자 콘솔 → 앱 설정 → 플랫폼 → Web에 현재 도메인 등록 (<code>{typeof window !== 'undefined' ? window.location.origin : ''}</code>)</li>
-                  <li>변경 후 Vercel에서 재배포</li>
+                  <li>Vercel 환경변수 <code>VITE_KAKAO_JS_KEY</code> 등록</li>
+                  <li>카카오 콘솔 → 앱 설정 → 플랫폼 → Web 에 도메인 등록 (<code>{typeof window !== 'undefined' ? window.location.origin : ''}</code>)</li>
                 </ol>
               </div>
-              <button className="btn" onClick={handleRetry} style={{ marginTop: 12 }}>
-                다시 시도
-              </button>
+              <button className="btn" onClick={handleRetry} style={{ marginTop: 12 }}>다시 시도</button>
             </div>
           )}
         </div>
@@ -83,9 +108,7 @@ export default function MapMain() {
             className="map-voice-btn"
             onClick={() => navigate('/search?mode=voice')}
             aria-label="음성으로 검색"
-          >
-            🎙
-          </button>
+          >🎙</button>
         </div>
 
         {isReady && (
@@ -93,13 +116,17 @@ export default function MapMain() {
             className="map-recenter-btn"
             onClick={handleRecenter}
             aria-label="내 위치로 이동"
-          >
-            📍
-          </button>
+          >📍</button>
         )}
 
         <div className="map-filter">
-          <div className="map-filter-title">무엇을 찾으세요?</div>
+          <div className="map-filter-title">
+            무엇을 찾으세요?
+            {loading && <span className="map-loading-pill">불러오는 중...</span>}
+            {!loading && pois.length > 0 && (
+              <span className="map-loading-pill">{pois.length}곳 찾음</span>
+            )}
+          </div>
           <div className="map-filter-btns">
             {FILTERS.map((t) => {
               const type = POI_TYPES[t]
@@ -118,6 +145,10 @@ export default function MapMain() {
             })}
           </div>
         </div>
+
+        {selectedPoi && (
+          <PoiDetailCard poi={selectedPoi} onClose={() => setSelectedPoi(null)} />
+        )}
 
         <SOSButton bottom={260} />
       </div>

@@ -10,6 +10,7 @@ const defaultState = {
     walkState: 'slow', // slow | very-slow | needs-help | stroller
   },
   destination: null,
+  activeRoute: null, // { coords:[{lat,lng}], distanceMeters, durationSeconds, source }
   family: [],
   favorites: [
     { id: 'home', name: '우리 집', emoji: '🏠', address: '서울 종로구 종로 12' },
@@ -77,6 +78,10 @@ export function AppProvider({ children }) {
     setState((prev) => ({ ...prev, destination: dest }))
   }
 
+  const setActiveRoute = (route) => {
+    setState((prev) => ({ ...prev, activeRoute: route }))
+  }
+
   const addFamily = (member) => {
     setState((prev) => ({
       ...prev,
@@ -90,6 +95,7 @@ export function AppProvider({ children }) {
         state,
         updateUser,
         setDestination,
+        setActiveRoute,
         addFamily,
       }}
     >
