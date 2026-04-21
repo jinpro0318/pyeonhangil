@@ -35,3 +35,39 @@ export function estimateMinutes(meters, walkStateId = 'slow') {
   const mpm = WALK_SPEED_MPM[walkStateId] || 50
   return Math.max(1, Math.round(meters / mpm))
 }
+
+/**
+ * 좌표 배열의 bbox + 패딩(미터)
+ * @param {Array<{lat,lng}>} coords
+ * @param {number} paddingMeters 좌우상하 여유 (기본 200m)
+ */
+export function bboxFromCoords(coords, paddingMeters = 200) {
+  if (!coords?.length) return null
+  let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity
+  for (const p of coords) {
+    if (p.lat < minLat) minLat = p.lat
+    if (p.lat > maxLat) maxLat = p.lat
+    if (p.lng < minLng) minLng = p.lng
+    if (p.lng > maxLng) maxLng = p.lng
+  }
+  // 위도 1도 ≈ 111,000m, 경도 1도 ≈ 111,000m × cos(lat)
+  const latPad = paddingMeters / 111000
+  const meanLat = (minLat + maxLat) / 2
+  const lngPad = paddingMeters / (111000 * Math.cos((meanLat * Math.PI) / 180))
+  return {
+    minLat: minLat - latPad,
+    maxLat: maxLat + latPad,
+    minLng: minLng - lngPad,
+    maxLng: maxLng + lngPad,
+  }
+}
+
+// bbox 가운데 좌표
+export function bboxCenter(b) {
+  return { lat: (b.minLat + b.maxLat) / 2, lng: (b.minLng + b.maxLng) / 2 }
+}
+
+// 좌표가 bbox 안에 있는지
+export function withinBbox(p, b) {
+  return p.lat >= b.minLat && p.lat <= b.maxLat && p.lng >= b.minLng && p.lng <= b.maxLng
+}

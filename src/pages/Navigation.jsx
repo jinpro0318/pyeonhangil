@@ -4,9 +4,9 @@ import { useGPS } from '../hooks/useGPS'
 import { useVoice } from '../hooks/useVoice'
 import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useAppState, WALK_STATES } from '../hooks/useAppState'
-import { fetchPois } from '../services/poiApi'
+import { fetchPois, fetchPoisInBbox } from '../services/poiApi'
 import { fetchRoute } from '../services/routeApi'
-import { formatDistance, estimateMinutes } from '../utils/geo'
+import { bboxFromCoords, formatDistance, estimateMinutes } from '../utils/geo'
 import SOSButton from '../components/SOSButton'
 import './Navigation.css'
 
@@ -37,13 +37,22 @@ export default function Navigation() {
     // eslint-disable-next-line
   }, [position?.lat, destination?.lat])
 
-  // 주변 쉼터/화장실
+  // 주변 POI: 경로가 있으면 경로 bbox 전체, 없으면 현위치 반경
   useEffect(() => {
+    if (route?.coords?.length) {
+      const bbox = bboxFromCoords(route.coords, 200)
+      if (!bbox) return
+      fetchPoisInBbox({
+        bbox,
+        types: ['rest', 'toilet', 'elev', 'cross'],
+      }).then((list) => setNearbyPois(list.slice(0, 20)))
+      return
+    }
     if (!position) return
-    fetchPois({ center: position, types: ['rest', 'toilet'], radius: 800 }).then((list) =>
-      setNearbyPois(list.slice(0, 5))
+    fetchPois({ center: position, types: ['rest', 'toilet', 'elev'], radius: 800 }).then((list) =>
+      setNearbyPois(list.slice(0, 8))
     )
-  }, [position?.lat])
+  }, [route, position?.lat])
 
   // 체류 감지 → 쉬는중 화면
   useEffect(() => {

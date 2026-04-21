@@ -1,10 +1,14 @@
-import { haversine } from '../utils/geo'
+import { haversine, withinBbox, bboxCenter } from '../utils/geo'
 
 /**
- * POI 통합 fetcher
- * - 카카오 로컬 검색 (서버 프록시: /api/local) — 화장실/쉼터/약국 등
- * - 정적 GeoJSON (/data/*.geojson) — 지하철 엘리베이터/장수의자/무더위쉼터
- * - 좌표 거리 필터 + 거리 정렬
+ * POI 통합 fetcher (3계층)
+ *  1) 정적 GeoJSON   — /public/data/*.geojson  (오프라인 가능, 즉시 응답)
+ *  2) 카카오 로컬     — /api/local              (실시간, 키워드 기반)
+ *  3) 정부 공공데이터 — /api/govdata            (data.go.kr 표준데이터, 캐시됨)
+ *
+ * 호출 모드
+ *  - center+radius : 중심 + 반경(m) 으로 조회 → 거리 정렬
+ *  - bbox          : 경계상자(경로 주변) 로 조회 → 거리 정렬 안 함
  */
 
 const STATIC_SOURCES = {
@@ -15,12 +19,19 @@ const STATIC_SOURCES = {
 const KAKAO_QUERIES = {
   toilet: ['공중화장실', '장애인화장실'],
   rest: ['무더위쉼터'],
-  elev: [], // 카카오 키워드는 정확도 낮음 → 정적만
+  elev: [],
   cross: [],
   ramp: ['경사로'],
 }
 
-const cache = new Map() // url → Promise<Poi[]>
+// 정부 공공데이터 ↔ 우리 type 매핑
+const GOV_TYPE_MAP = {
+  rest: 'heat-shelter',
+  toilet: 'public-toilet',
+  cross: 'disabled-facility',
+}
+
+const cache = new Map()
 
 async function loadGeojson(url) {
   if (cache.has(url)) return cache.get(url)
@@ -61,47 +72,83 @@ async function fetchKakaoLocal(query, type, center) {
   }
 }
 
+async function fetchGovData(typeKey, bbox) {
+  const govType = GOV_TYPE_MAP[typeKey]
+  if (!govType) return []
+  const params = new URLSearchParams({ type: govType })
+  if (bbox) {
+    params.set('minLat', String(bbox.minLat))
+    params.set('maxLat', String(bbox.maxLat))
+    params.set('minLng', String(bbox.minLng))
+    params.set('maxLng', String(bbox.maxLng))
+  }
+  params.set('limit', '60')
+  try {
+    const r = await fetch(`/api/govdata?${params}`)
+    if (!r.ok) return []
+    const data = await r.json()
+    return data.pois || []
+  } catch {
+    return []
+  }
+}
+
+function dedupAndSort(list, center) {
+  // 좌표 5m 이내 + 같은 type 중복 제거
+  const dedup = []
+  for (const p of list) {
+    const dup = dedup.find((d) => d.type === p.type && haversine(d, p) < 5)
+    if (!dup) dedup.push(p)
+  }
+  if (center) {
+    dedup.forEach((p) => (p.distance = haversine(center, p)))
+    dedup.sort((a, b) => a.distance - b.distance)
+  }
+  return dedup
+}
+
 /**
- * @param {object} opts
- * @param {{lat:number,lng:number}} opts.center
- * @param {number} [opts.radius=1500] 미터
- * @param {string[]} [opts.types]
- * @returns {Promise<Poi[]>} 거리 정렬, 중복 제거
+ * 중심 + 반경 모드
+ * @param {{lat,lng}} center
+ * @param {number} radius (m)
+ * @param {string[]} types
  */
 export async function fetchPois({ center, radius = 1500, types = ['rest', 'toilet', 'elev', 'cross'] }) {
   if (!center) return []
 
   const tasks = []
-
   for (const t of types) {
-    // 정적 데이터
-    for (const url of STATIC_SOURCES[t] || []) {
-      tasks.push(loadGeojson(url))
-    }
-    // 카카오 키워드
-    for (const q of KAKAO_QUERIES[t] || []) {
-      tasks.push(fetchKakaoLocal(q, t, center))
-    }
+    for (const url of STATIC_SOURCES[t] || []) tasks.push(loadGeojson(url))
+    for (const q of KAKAO_QUERIES[t] || []) tasks.push(fetchKakaoLocal(q, t, center))
+    if (GOV_TYPE_MAP[t]) tasks.push(fetchGovData(t, null))
   }
 
   const results = await Promise.all(tasks)
   let merged = results.flat()
-
-  // 거리 계산 + 반경 내만
   merged = merged
     .map((p) => ({ ...p, distance: haversine(center, p) }))
     .filter((p) => p.distance <= radius)
 
-  // 중복 제거 (같은 좌표 5m 이내 + 같은 타입)
-  const dedup = []
-  for (const p of merged) {
-    const dup = dedup.find(
-      (d) => d.type === p.type && haversine(d, p) < 5
-    )
-    if (!dup) dedup.push(p)
+  return dedupAndSort(merged, center)
+}
+
+/**
+ * 경로 주변 모드 (bbox)
+ * @param {object} bbox {minLat,maxLat,minLng,maxLng}
+ * @param {string[]} types
+ */
+export async function fetchPoisInBbox({ bbox, types = ['rest', 'toilet', 'elev', 'cross'] }) {
+  if (!bbox) return []
+  const center = bboxCenter(bbox)
+
+  const tasks = []
+  for (const t of types) {
+    for (const url of STATIC_SOURCES[t] || []) tasks.push(loadGeojson(url))
+    for (const q of KAKAO_QUERIES[t] || []) tasks.push(fetchKakaoLocal(q, t, center))
+    if (GOV_TYPE_MAP[t]) tasks.push(fetchGovData(t, bbox))
   }
 
-  // 거리 오름차순
-  dedup.sort((a, b) => a.distance - b.distance)
-  return dedup
+  const results = await Promise.all(tasks)
+  const merged = results.flat().filter((p) => withinBbox(p, bbox))
+  return dedupAndSort(merged, center)
 }

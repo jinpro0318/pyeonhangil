@@ -5,8 +5,8 @@ import { useVoice } from '../hooks/useVoice'
 import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useGPS } from '../hooks/useGPS'
 import { fetchRoute } from '../services/routeApi'
-import { fetchPois } from '../services/poiApi'
-import { formatDistance, estimateMinutes } from '../utils/geo'
+import { fetchPoisInBbox } from '../services/poiApi'
+import { bboxFromCoords, formatDistance, estimateMinutes } from '../utils/geo'
 import './RouteSuggest.css'
 
 export default function RouteSuggest() {
@@ -42,17 +42,16 @@ export default function RouteSuggest() {
     // eslint-disable-next-line
   }, [position?.lat, position?.lng, destination?.lat, destination?.lng])
 
-  // 경로 주변 쉼터/화장실
+  // 경로 주변(bbox) 쉼터/화장실/장애인편의시설
   useEffect(() => {
-    if (!position) return
-    const center = destination?.lat
-      ? {
-          lat: (position.lat + destination.lat) / 2,
-          lng: (position.lng + destination.lng) / 2,
-        }
-      : position
-    fetchPois({ center, radius: 1500, types: ['rest', 'toilet'] }).then(setRoutePois)
-  }, [position?.lat, destination?.lat])
+    if (!route?.coords?.length) return
+    const bbox = bboxFromCoords(route.coords, 250)
+    if (!bbox) return
+    fetchPoisInBbox({
+      bbox,
+      types: ['rest', 'toilet', 'elev', 'cross'],
+    }).then((list) => setRoutePois(list.slice(0, 30)))
+  }, [route])
 
   const polylines = route?.coords?.length > 1
     ? [{ path: route.coords, color: '#3182F6', weight: 7, opacity: 0.85 }]
@@ -70,7 +69,7 @@ export default function RouteSuggest() {
   }
 
   useKakaoMap(mapRef, {
-    pois: [...startEndPois, ...routePois.slice(0, 6)],
+    pois: [...startEndPois, ...routePois.slice(0, 12)],
     polylines,
     center: position,
     myLocation: position,
@@ -99,6 +98,8 @@ export default function RouteSuggest() {
 
   const restCount = routePois.filter((p) => p.type === 'rest').length
   const toiletCount = routePois.filter((p) => p.type === 'toilet').length
+  const accessibleCount = routePois.filter((p) => p.type === 'cross').length
+  const elevCount = routePois.filter((p) => p.type === 'elev').length
 
   return (
     <div className="route-page">
@@ -151,8 +152,18 @@ export default function RouteSuggest() {
             </div>
             <div className="route-feat">
               <span className="route-check">✓</span>
-              <span>쉴 곳 {restCount}군데 · 화장실 {toiletCount}곳</span>
+              <span>쉴 곳 {restCount}곳 · 화장실 {toiletCount}곳</span>
             </div>
+            {(elevCount > 0 || accessibleCount > 0) && (
+              <div className="route-feat">
+                <span className="route-check">✓</span>
+                <span>
+                  {elevCount > 0 && `엘리베이터 ${elevCount}곳`}
+                  {elevCount > 0 && accessibleCount > 0 && ' · '}
+                  {accessibleCount > 0 && `장애인 편의시설 ${accessibleCount}곳`}
+                </span>
+              </div>
+            )}
             <div className="route-feat">
               <span className="route-check">✓</span>
               <span>실시간 GPS로 안내</span>
