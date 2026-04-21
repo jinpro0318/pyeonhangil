@@ -2,31 +2,62 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 /**
  * 편한길 카카오맵 훅
- * - SDK 동적 로드
- * - 지도 생성 및 POI 마커 관리
+ * - SDK 동적 로드 (싱글톤)
+ * - 지도 생성 + 내 위치 + POI 마커 관리
+ * - 에러를 사용자 친화 메시지로 변환
  */
 
 let sdkPromise = null
 
-function loadKakaoSDK(appKey) {
-  if (sdkPromise) return sdkPromise
-  if (typeof window !== 'undefined' && window.kakao?.maps) {
+function loadKakaoSDK() {
+  if (typeof window === 'undefined') {
+    return Promise.reject(new Error('브라우저 환경이 아니에요'))
+  }
+  if (window.kakao?.maps?.LatLng) {
     return Promise.resolve(window.kakao)
+  }
+  if (sdkPromise) return sdkPromise
+
+  const key = import.meta.env.VITE_KAKAO_JS_KEY
+
+  if (!key || key.includes('여기에') || key === 'undefined') {
+    return Promise.reject(
+      new Error(
+        '카카오 JavaScript 키가 설정되지 않았어요. ' +
+          '로컬은 .env, 배포는 Vercel 환경변수에 VITE_KAKAO_JS_KEY를 등록해주세요.'
+      )
+    )
   }
 
   sdkPromise = new Promise((resolve, reject) => {
-    const key = appKey || window.KAKAO_JS_KEY || import.meta.env.VITE_KAKAO_JS_KEY
-    if (!key || key.includes('여기에') || key === '%VITE_KAKAO_JS_KEY%') {
-      reject(new Error('카카오 JavaScript 키가 설정되지 않았습니다. .env에 VITE_KAKAO_JS_KEY를 넣어주세요.'))
-      return
-    }
+    // 카카오 SDK는 도메인이 등록되지 않으면 콘솔에 에러를 찍지만
+    // script.onerror/onload는 그대로 onload 가 호출됨.
+    // 그래서 onload 후 window.kakao 존재 여부로 1차 판별.
     const script = document.createElement('script')
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${key}&libraries=services&autoload=false`
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${key}&libraries=services&autoload=false`
     script.async = true
     script.onload = () => {
+      if (!window.kakao || !window.kakao.maps) {
+        sdkPromise = null
+        reject(
+          new Error(
+            '카카오맵 SDK는 받았지만 초기화에 실패했어요. ' +
+              '카카오 개발자 콘솔에서 현재 도메인이 Web 플랫폼에 등록되어 있는지 확인해주세요.'
+          )
+        )
+        return
+      }
       window.kakao.maps.load(() => resolve(window.kakao))
     }
-    script.onerror = () => reject(new Error('카카오맵 SDK 로드 실패'))
+    script.onerror = () => {
+      sdkPromise = null
+      reject(
+        new Error(
+          '카카오맵 SDK 파일을 불러오지 못했어요. ' +
+            '인터넷 연결 또는 광고 차단 확장 프로그램을 확인해주세요.'
+        )
+      )
+    }
     document.head.appendChild(script)
   })
 
@@ -49,6 +80,12 @@ const MARKER_ICONS = {
   ramp: '📐',
 }
 
+function escapeHtml(s = '') {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]))
+}
+
 function createMarkerContent(poi) {
   const color = MARKER_COLORS[poi.type] || '#3182F6'
   const icon = MARKER_ICONS[poi.type] || '📍'
@@ -65,7 +102,7 @@ function createMarkerContent(poi) {
       border:2px solid white;
     ">
       <span style="font-size:14px;">${icon}</span>
-      <span>${poi.name}</span>
+      <span>${escapeHtml(poi.name)}</span>
     </div>
   `
 }
@@ -90,16 +127,19 @@ export function useKakaoMap(containerRef, options = {}) {
     pois = [],
     showMyLocation = true,
     draggable = true,
+    myLocation = null,
   } = options
 
-  const [map, setMap] = useState(null)
+  const mapRef = useRef(null)
+  const myLocOverlayRef = useRef(null)
+  const poiOverlaysRef = useRef([])
+
   const [isReady, setIsReady] = useState(false)
   const [error, setError] = useState(null)
-  const overlaysRef = useRef([])
 
+  // 지도 1회 생성
   useEffect(() => {
     if (!containerRef.current) return
-
     let cancelled = false
 
     loadKakaoSDK()
@@ -111,43 +151,47 @@ export function useKakaoMap(containerRef, options = {}) {
           level,
           draggable,
         })
+        mapRef.current = mapInstance
 
-        setMap(mapInstance)
-        setIsReady(true)
-
-        // 내 위치 마커
         if (showMyLocation) {
-          const myLoc = new kakao.maps.CustomOverlay({
+          const overlay = new kakao.maps.CustomOverlay({
             position: new kakao.maps.LatLng(center.lat, center.lng),
             content: createMyLocationContent(),
             xAnchor: 0.5,
             yAnchor: 0.5,
             zIndex: 10,
           })
-          myLoc.setMap(mapInstance)
-          overlaysRef.current.push(myLoc)
+          overlay.setMap(mapInstance)
+          myLocOverlayRef.current = overlay
         }
+
+        setIsReady(true)
       })
       .catch((e) => {
-        console.error(e)
+        if (cancelled) return
+        console.error('[KakaoMap]', e)
         setError(e.message)
       })
 
     return () => {
       cancelled = true
-      overlaysRef.current.forEach((o) => o.setMap(null))
-      overlaysRef.current = []
+      if (myLocOverlayRef.current) myLocOverlayRef.current.setMap(null)
+      poiOverlaysRef.current.forEach((o) => o.setMap(null))
+      poiOverlaysRef.current = []
+      myLocOverlayRef.current = null
+      mapRef.current = null
+      setIsReady(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // POI 마커 업데이트
+  // POI 마커 동기화
   useEffect(() => {
+    const map = mapRef.current
     if (!map || !window.kakao) return
 
-    // 기존 POI 마커 제거 (내 위치는 남김)
-    overlaysRef.current.slice(1).forEach((o) => o.setMap(null))
-    overlaysRef.current = overlaysRef.current.slice(0, 1)
+    poiOverlaysRef.current.forEach((o) => o.setMap(null))
+    poiOverlaysRef.current = []
 
     pois.forEach((poi) => {
       const overlay = new window.kakao.maps.CustomOverlay({
@@ -157,18 +201,28 @@ export function useKakaoMap(containerRef, options = {}) {
         yAnchor: 0.5,
       })
       overlay.setMap(map)
-      overlaysRef.current.push(overlay)
+      poiOverlaysRef.current.push(overlay)
     })
-  }, [map, pois])
+  }, [pois, isReady])
 
-  // 센터 업데이트
-  const setCenter = useCallback(
-    (lat, lng) => {
-      if (!map || !window.kakao) return
-      map.setCenter(new window.kakao.maps.LatLng(lat, lng))
-    },
-    [map]
-  )
+  // 내 위치 이동
+  useEffect(() => {
+    if (!isReady || !myLocation || !window.kakao) return
+    const map = mapRef.current
+    const pos = new window.kakao.maps.LatLng(myLocation.lat, myLocation.lng)
+    if (myLocOverlayRef.current) myLocOverlayRef.current.setPosition(pos)
+    map.setCenter(pos)
+  }, [myLocation, isReady])
 
-  return { map, isReady, error, setCenter }
+  const setCenter = useCallback((lat, lng) => {
+    const map = mapRef.current
+    if (!map || !window.kakao) return
+    map.setCenter(new window.kakao.maps.LatLng(lat, lng))
+  }, [])
+
+  const relayout = useCallback(() => {
+    mapRef.current?.relayout()
+  }, [])
+
+  return { map: mapRef.current, isReady, error, setCenter, relayout }
 }

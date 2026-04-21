@@ -28,6 +28,31 @@
   padding-bottom: 20px;
 }
 
+.route-map {
+  position: relative;
+  height: 180px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg-muted);
+  flex-shrink: 0;
+}
+
+.route-map > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.route-map-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--ink-500);
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
 .route-path-box {
   background: var(--bg-muted);
   border-radius: 16px;

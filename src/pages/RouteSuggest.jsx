@@ -1,14 +1,19 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAppState, WALK_STATES } from '../hooks/useAppState'
 import { useVoice } from '../hooks/useVoice'
+import { useKakaoMap } from '../hooks/useKakaoMap'
+import { useGPS } from '../hooks/useGPS'
+import { SAMPLE_POIS } from '../data/pois'
 import './RouteSuggest.css'
 
 export default function RouteSuggest() {
   const location = useLocation()
   const navigate = useNavigate()
+  const mapRef = useRef(null)
   const { state, setDestination } = useAppState()
   const { speak } = useVoice()
+  const { position, start } = useGPS({ enableStayDetection: false })
 
   const destination = location.state?.destination || {
     name: '서울대학교병원',
@@ -17,16 +22,26 @@ export default function RouteSuggest() {
 
   const walk = WALK_STATES[state.user.walkState]
 
-  // 걸음 상태별 예상 시간
   const estimatedTime =
     walk.id === 'slow' ? 18 :
     walk.id === 'very-slow' ? 24 :
     walk.id === 'needs-help' ? 30 :
     20
 
+  // 경로 미리보기 - 주변 쉼터/화장실 표시
+  const routePois = SAMPLE_POIS.filter((p) => ['rest', 'toilet', 'cross'].includes(p.type)).slice(0, 5)
+  useKakaoMap(mapRef, {
+    pois: routePois,
+    center: position,
+    myLocation: position,
+    level: 5,
+  })
+
   useEffect(() => {
+    start()
     speak(`${destination.name}까지 ${estimatedTime}분 걸리는 편한 길을 찾았어요`)
-  }, [destination, estimatedTime, speak])
+    // eslint-disable-next-line
+  }, [])
 
   const handleStart = () => {
     setDestination(destination)
@@ -41,7 +56,12 @@ export default function RouteSuggest() {
       </div>
 
       <div className="route-body">
-        {/* 경로 표시 */}
+        {/* 경로 미리보기 지도 */}
+        <div className="route-map" ref={mapRef}>
+          <div className="route-map-fallback">🗺️ 지도 불러오는 중...</div>
+        </div>
+
+        {/* 출발-도착 표시 */}
         <div className="route-path-box">
           <div className="route-point">
             <div className="route-dot start" />
@@ -54,12 +74,10 @@ export default function RouteSuggest() {
           </div>
         </div>
 
-        {/* 걸음 기준 배지 */}
         <div className={`chip ${walk.color}`} style={{ alignSelf: 'flex-start' }}>
           {walk.emoji} {walk.name} · 걸음 기준 맞춤
         </div>
 
-        {/* 추천 경로 카드 */}
         <div className="route-recommend">
           <div className="route-badge">편하고 안전한 길</div>
 

@@ -3,20 +3,61 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  padding: 14px 22px 24px;
   overflow-y: auto;
+  background: white;
 }
 
-.nav-top {
+.nav-map-wrap {
+  position: relative;
+  height: 32%;
+  min-height: 200px;
+  flex-shrink: 0;
+  background: var(--bg-muted);
+}
+
+.nav-map {
+  position: absolute;
+  inset: 0;
+}
+
+.nav-map > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.nav-map-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--ink-500);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  padding: 16px;
+}
+
+.nav-map-placeholder.error {
+  color: var(--walk-yellow);
+}
+
+.nav-map-overlay {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+
+.nav-body {
+  flex: 1;
+  padding: 16px 22px 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.nav-status {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
 }
 
 .nav-progress {
