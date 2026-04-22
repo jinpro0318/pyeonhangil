@@ -3,9 +3,10 @@
  * POST /api/route  body: { origin: {lat,lng}, destination: {lat,lng} }
  *
  * 우선순위:
- *   1) Tmap 보행자 경로 API (TMAP_APP_KEY 있을 때)  — 실제 보행자 도로
- *   2) 카카오 자동차 길찾기 API (KAKAO_REST_API_KEY) — 도보 근사치
- *   3) 직선 폴백 (출발/목적지 직선 + 중간점 1개)
+ *   1) Tmap 보행자 경로 (TMAP_APP_KEY)          — 실제 한국 보행자 도로
+ *   2) OSRM foot 프로파일 (무키, OpenStreetMap)  — 실제 도보 경로
+ *   3) 카카오 자동차 길찾기 (KAKAO_REST_API_KEY)  — 큰길 근사치 (최후)
+ *   4) 직선 폴백
  *
  * 응답: { coords: [{lat,lng}, ...], distanceMeters, durationSeconds, source }
  */
@@ -71,6 +72,28 @@ async function tryTmap(origin, destination, key) {
   return { coords, distanceMeters, durationSeconds, source: 'tmap' }
 }
 
+// OSRM 공개 데모 서버 — foot 프로파일 (도보)
+// OpenStreetMap 데이터 기반으로 실제 인도/보행자 길을 따라 경로 계산
+async function tryOSRMFoot(origin, destination) {
+  const url =
+    `https://router.project-osrm.org/route/v1/foot/` +
+    `${origin.lng},${origin.lat};${destination.lng},${destination.lat}` +
+    `?overview=full&geometries=geojson&steps=false`
+  const r = await fetch(url, { headers: { 'User-Agent': 'pyeonhangil/1.0' } })
+  if (!r.ok) throw new Error(`osrm ${r.status}`)
+  const data = await r.json()
+  if (data.code !== 'Ok' || !data.routes?.[0]) throw new Error(`osrm ${data.code || 'no route'}`)
+  const route = data.routes[0]
+  const coords = (route.geometry?.coordinates || []).map(([lng, lat]) => ({ lat, lng }))
+  if (coords.length < 2) throw new Error('osrm empty')
+  return {
+    coords,
+    distanceMeters: Math.round(route.distance || 0),
+    durationSeconds: Math.round(route.duration || 0),
+    source: 'osrm-foot',
+  }
+}
+
 async function tryKakaoDriving(origin, destination, key) {
   const url = new URL('https://apis-navi.kakaomobility.com/v1/directions')
   url.searchParams.set('origin', `${origin.lng},${origin.lat}`)
@@ -120,7 +143,7 @@ export default async function handler(req, res) {
   const tmapKey = process.env.TMAP_APP_KEY
   const kakaoKey = process.env.KAKAO_REST_API_KEY || process.env.VITE_KAKAO_REST_API_KEY
 
-  // 1) Tmap
+  // 1) Tmap 보행자
   if (tmapKey) {
     try {
       const out = await tryTmap(origin, destination, tmapKey)
@@ -134,7 +157,19 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2) Kakao 자동차 (보행자 근사)
+  // 2) OSRM 도보 (무키, 실제 보행자 길)
+  try {
+    const out = await tryOSRMFoot(origin, destination)
+    if (out.coords.length >= 2) {
+      res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300')
+      res.status(200).json(out)
+      return
+    }
+  } catch (e) {
+    console.warn('[route] osrm failed', e.message)
+  }
+
+  // 3) 카카오 자동차 (최후 근사치)
   if (kakaoKey) {
     try {
       const out = await tryKakaoDriving(origin, destination, kakaoKey)
@@ -148,6 +183,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // 3) 직선 폴백
+  // 4) 직선 폴백
   res.status(200).json(STRAIGHT_FALLBACK(origin, destination))
 }
