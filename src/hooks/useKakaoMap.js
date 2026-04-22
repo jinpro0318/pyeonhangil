@@ -123,18 +123,41 @@ function poiMarkerHtml(poi) {
     `
   }
 
-  // 일반 POI: 색 원 + 이모지 (작지만 타입 식별 가능)
+  // 일반 POI: 색 원(이모지) + 옆에 장소명 라벨
+  // 외부 wrapper 는 22x22 (dot 크기) — xAnchor/yAnchor=0.5 일 때 dot 이 정확히 좌표에 옴
+  // 라벨은 absolute 로 오른쪽에 떠있어 좌표를 밀지 않음
+  const safeName = escapeHtml(poi.name || '')
   return `
     <div data-poi-id="${escapeHtml(poi.id)}" style="
-      width:22px; height:22px;
-      background:${color};
-      border-radius:50%;
-      border:2.5px solid white;
-      box-shadow:0 1px 4px rgba(0,0,0,0.3);
-      cursor:pointer;
-      display:flex; align-items:center; justify-content:center;
-      font-size:11px; line-height:1;
-    ">${icon}</div>
+      position:relative; width:22px; height:22px;
+      cursor:pointer; font-family:Pretendard,-apple-system,sans-serif;
+    ">
+      <div style="
+        width:22px; height:22px;
+        background:${color};
+        border-radius:50%;
+        border:2.5px solid white;
+        box-shadow:0 1px 4px rgba(0,0,0,0.3);
+        display:flex; align-items:center; justify-content:center;
+        font-size:11px; line-height:1;
+      ">${icon}</div>
+      ${safeName ? `
+        <div style="
+          position:absolute; left:28px; top:50%;
+          transform:translateY(-50%);
+          background:rgba(255,255,255,0.96);
+          color:#1a1a1a;
+          font-size:11px; font-weight:700;
+          padding:2px 7px;
+          border-radius:6px;
+          box-shadow:0 1px 3px rgba(0,0,0,0.18);
+          max-width:96px;
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+          letter-spacing:-0.02em;
+          border:1px solid rgba(0,0,0,0.04);
+        ">${safeName}</div>
+      ` : ''}
+    </div>
   `
 }
 
