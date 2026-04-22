@@ -18,6 +18,7 @@
 .nav-map {
   position: absolute;
   inset: 0;
+  touch-action: none;
 }
 
 .nav-map > div {
@@ -44,12 +45,36 @@
 .nav-map-overlay {
   position: absolute;
   top: 12px;
-  left: 12px;
+  left: 60px;
   right: 12px;
   display: flex;
   gap: 6px;
   z-index: 10;
   flex-wrap: wrap;
+}
+
+.nav-back-btn {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 11;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-900, #111);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding-bottom: 3px;
+}
+.nav-back-btn:active {
+  transform: scale(0.95);
 }
 
 .nav-body {

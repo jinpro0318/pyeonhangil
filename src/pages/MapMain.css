@@ -10,6 +10,7 @@
   position: absolute;
   inset: 0;
   background: #f0f4f7;
+  touch-action: none; /* 페이지가 핀치를 가로채지 못하게 → Kakao가 직접 줌 처리 */
 }
 
 /* 카카오맵이 컨테이너를 채우도록 보장 */

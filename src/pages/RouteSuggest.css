@@ -37,6 +37,7 @@
   background: var(--bg-muted);
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  touch-action: none; /* 핀치 줌 Kakao로 위임 */
 }
 
 .route-map > div {

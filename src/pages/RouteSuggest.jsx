@@ -7,6 +7,7 @@ import { useGPS } from '../hooks/useGPS'
 import { fetchRoute } from '../services/routeApi'
 import { fetchPoisInBbox } from '../services/poiApi'
 import { bboxFromCoords, formatDistance, estimateMinutes } from '../utils/geo'
+import PoiDetailCard from '../components/PoiDetailCard'
 import './RouteSuggest.css'
 
 export default function RouteSuggest() {
@@ -30,6 +31,7 @@ export default function RouteSuggest() {
   const [route, setRoute] = useState(null)
   const [routePois, setRoutePois] = useState([])
   const [isRouting, setIsRouting] = useState(false)
+  const [selectedPoi, setSelectedPoi] = useState(null)
 
   // 경로 fetch
   useEffect(() => {
@@ -79,12 +81,16 @@ export default function RouteSuggest() {
   }
 
   const { isReady: isMapReady, error: mapError } = useKakaoMap(mapRef, {
-    pois: [...startEndPois, ...routePois.slice(0, 8)],
+    pois: [...startEndPois, ...routePois.slice(0, 12)],
     polylines,
     center: position,
     myLocation: position,
     level: 5,
     fitBoundsOnPolyline: true,
+    onPoiClick: (poi) => {
+      if (poi.type === 'start') return // 내 위치는 카드 안 띄움
+      setSelectedPoi(poi)
+    },
   })
 
   // 거리 -> 시간 추정 (실측 거리 우선, 없으면 직선)
@@ -207,6 +213,10 @@ export default function RouteSuggest() {
           이 길로 갈게요
         </button>
       </div>
+
+      {selectedPoi && (
+        <PoiDetailCard poi={selectedPoi} onClose={() => setSelectedPoi(null)} />
+      )}
     </div>
   )
 }

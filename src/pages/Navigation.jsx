@@ -8,6 +8,7 @@ import { fetchPois, fetchPoisInBbox } from '../services/poiApi'
 import { fetchRoute } from '../services/routeApi'
 import { bboxFromCoords, formatDistance, estimateMinutes } from '../utils/geo'
 import SOSButton from '../components/SOSButton'
+import PoiDetailCard from '../components/PoiDetailCard'
 import './Navigation.css'
 
 export default function Navigation() {
@@ -24,6 +25,7 @@ export default function Navigation() {
 
   const [route, setRoute] = useState(state.activeRoute || null)
   const [nearbyPois, setNearbyPois] = useState([])
+  const [selectedPoi, setSelectedPoi] = useState(null)
 
   // GPS 시작 + 경로 확보 (없으면 fetch)
   useEffect(() => {
@@ -106,6 +108,7 @@ export default function Navigation() {
     level: 4,
     draggable: true,
     fitBoundsOnPolyline: true,
+    onPoiClick: (poi) => setSelectedPoi(poi),
   })
 
   return (
@@ -121,6 +124,11 @@ export default function Navigation() {
             </div>
           )}
         </div>
+        <button
+          className="nav-back-btn"
+          onClick={() => navigate('/home')}
+          aria-label="뒤로"
+        >‹</button>
         <div className="nav-map-overlay">
           <div className="voice-indicator">
             <div className="voice-dot"></div>
@@ -195,6 +203,10 @@ export default function Navigation() {
       </div>
 
       <SOSButton bottom={24} />
+
+      {selectedPoi && (
+        <PoiDetailCard poi={selectedPoi} onClose={() => setSelectedPoi(null)} />
+      )}
     </div>
   )
 }

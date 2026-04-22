@@ -103,21 +103,36 @@ function escapeHtml(s = '') {
 function poiMarkerHtml(poi) {
   const color = MARKER_COLORS[poi.type] || '#3182F6'
   const icon = MARKER_ICONS[poi.type] || '📍'
+  const isEndpoint = poi.type === 'start' || poi.type === 'end'
+
+  if (isEndpoint) {
+    // 출발/도착은 크고 눈에 띄는 핀 마커 (라벨 없음 — 탭하면 상세 카드가 뜸)
+    return `
+      <div data-poi-id="${escapeHtml(poi.id)}" style="
+        width:34px; height:34px;
+        display:flex; align-items:center; justify-content:center;
+        background:${color}; color:white;
+        border-radius:50% 50% 50% 0;
+        transform: rotate(-45deg);
+        box-shadow:0 3px 8px rgba(0,0,0,0.25);
+        border:3px solid white;
+        cursor:pointer;
+      ">
+        <span style="font-size:16px; transform: rotate(45deg);">${icon}</span>
+      </div>
+    `
+  }
+
+  // 일반 POI: 지도를 덜 가리도록 작은 컬러 점
   return `
     <div data-poi-id="${escapeHtml(poi.id)}" style="
-      display:flex; align-items:center; gap:5px;
-      background:${color}; color:white;
-      padding:6px 11px; border-radius:100px;
-      font-size:12px; font-weight:700;
-      box-shadow:0 2px 8px rgba(0,0,0,0.15);
-      white-space:nowrap;
-      font-family:Pretendard,-apple-system,sans-serif;
-      letter-spacing:-0.02em; cursor:pointer;
+      width:16px; height:16px;
+      background:${color};
+      border-radius:50%;
       border:2px solid white;
-    ">
-      <span style="font-size:14px;">${icon}</span>
-      <span>${escapeHtml(poi.name)}</span>
-    </div>
+      box-shadow:0 1px 4px rgba(0,0,0,0.25);
+      cursor:pointer;
+    "></div>
   `
 }
 
@@ -177,6 +192,18 @@ export function useKakaoMap(containerRef, options = {}) {
           draggable,
         })
         mapRef.current = mapInstance
+
+        // 확대/축소: 핀치 + 휠 + 더블탭 전부 보장
+        mapInstance.setZoomable(true)
+        mapInstance.setDraggable(draggable)
+
+        // +/- 줌 컨트롤 (손가락으로 조작하기 좋게)
+        try {
+          const zoomControl = new kakao.maps.ZoomControl()
+          mapInstance.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT)
+        } catch (e) {
+          // ZoomControl은 일부 버전에서 없을 수 있음 — 실패해도 지도는 정상
+        }
 
         if (showMyLocation) {
           const overlay = new kakao.maps.CustomOverlay({

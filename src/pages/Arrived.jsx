@@ -60,7 +60,10 @@ export default function Arrived() {
         <button className="btn secondary" onClick={() => navigate('/home')}>
           홈으로
         </button>
-        <button className="btn large" onClick={() => navigate('/route')}>
+        <button
+          className="btn large"
+          onClick={() => navigate('/search?mode=voice')}
+        >
           돌아가는 길도 편하게
         </button>
       </div>
