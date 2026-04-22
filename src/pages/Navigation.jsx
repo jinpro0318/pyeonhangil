@@ -6,7 +6,10 @@ import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useAppState, WALK_STATES } from '../hooks/useAppState'
 import { fetchPois, fetchPoisInBbox } from '../services/poiApi'
 import { fetchRoute } from '../services/routeApi'
-import { bboxFromCoords, formatDistance, estimateMinutes } from '../utils/geo'
+import { bboxFromCoords, formatDistance, estimateMinutes, minDistanceToPolyline } from '../utils/geo'
+
+const SERVICE_TYPES = ['rest', 'toilet', 'elev', 'ramp', 'cross']
+const ROUTE_RADIUS_METERS = 50
 import SOSButton from '../components/SOSButton'
 import PoiDetailCard from '../components/PoiDetailCard'
 import './Navigation.css'
@@ -39,21 +42,25 @@ export default function Navigation() {
     // eslint-disable-next-line
   }, [position?.lat, destination?.lat])
 
-  // 주변 POI: 경로가 있으면 경로 bbox 전체, 없으면 현위치 반경
+  // 경로 50m 이내 & 우리 서비스 타입만 표시 (경로 없으면 현위치 50m 반경)
   useEffect(() => {
     if (route?.coords?.length) {
-      const bbox = bboxFromCoords(route.coords, 200)
+      const bbox = bboxFromCoords(route.coords, ROUTE_RADIUS_METERS + 10)
       if (!bbox) return
-      fetchPoisInBbox({
-        bbox,
-        types: ['rest', 'toilet', 'elev', 'ramp', 'cross'],
-      }).then((list) => setNearbyPois(list.slice(0, 24)))
+      fetchPoisInBbox({ bbox, types: SERVICE_TYPES }).then((list) => {
+        const filtered = list
+          .filter((p) => SERVICE_TYPES.includes(p.type))
+          .map((p) => ({ ...p, _dToRoute: minDistanceToPolyline(p, route.coords) }))
+          .filter((p) => p._dToRoute <= ROUTE_RADIUS_METERS)
+          .sort((a, b) => a._dToRoute - b._dToRoute)
+        setNearbyPois(filtered.slice(0, 24))
+      })
       return
     }
     if (!position) return
-    fetchPois({ center: position, types: ['rest', 'toilet', 'elev', 'ramp'], radius: 800 }).then((list) =>
-      setNearbyPois(list.slice(0, 10))
-    )
+    fetchPois({ center: position, types: SERVICE_TYPES, radius: ROUTE_RADIUS_METERS }).then((list) => {
+      setNearbyPois(list.filter((p) => SERVICE_TYPES.includes(p.type)).slice(0, 10))
+    })
   }, [route, position?.lat])
 
   // 체류 감지 → 쉬는중 화면

@@ -6,10 +6,14 @@ import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useGPS } from '../hooks/useGPS'
 import { fetchRoute } from '../services/routeApi'
 import { fetchPoisInBbox } from '../services/poiApi'
-import { bboxFromCoords, formatDistance, estimateMinutes } from '../utils/geo'
+import { bboxFromCoords, formatDistance, estimateMinutes, minDistanceToPolyline } from '../utils/geo'
 import { POI_TYPES } from '../data/pois'
 import PoiDetailCard from '../components/PoiDetailCard'
 import './RouteSuggest.css'
+
+// 우리 서비스 범주 — 이 외 타입은 지도에 표시하지 않음
+const SERVICE_TYPES = ['rest', 'toilet', 'elev', 'ramp', 'cross']
+const ROUTE_RADIUS_METERS = 50
 
 // 카카오 로컬 검색 — 타이핑 자동완성용
 async function kakaoSuggest(query, center) {
@@ -116,15 +120,20 @@ export default function RouteSuggest() {
     // eslint-disable-next-line
   }, [destText, activeField])
 
-  // 경로 주변(bbox) 쉼터 · 화장실 · 엘리베이터 · 경사로 · 무장애 시설
+  // 경로에서 50m 이내 & 우리 서비스 범주인 POI 만 표시
   useEffect(() => {
     if (!route?.coords?.length) return
-    const bbox = bboxFromCoords(route.coords, 250)
+    // bbox 는 50m + 여유 10m 로 작게 — 넓게 받고 정원형(50m) 필터링
+    const bbox = bboxFromCoords(route.coords, ROUTE_RADIUS_METERS + 10)
     if (!bbox) return
-    fetchPoisInBbox({
-      bbox,
-      types: ['rest', 'toilet', 'elev', 'ramp', 'cross'],
-    }).then((list) => setRoutePois(list.slice(0, 40)))
+    fetchPoisInBbox({ bbox, types: SERVICE_TYPES }).then((list) => {
+      const filtered = list
+        .filter((p) => SERVICE_TYPES.includes(p.type))
+        .map((p) => ({ ...p, _dToRoute: minDistanceToPolyline(p, route.coords) }))
+        .filter((p) => p._dToRoute <= ROUTE_RADIUS_METERS)
+        .sort((a, b) => a._dToRoute - b._dToRoute)
+      setRoutePois(filtered.slice(0, 40))
+    })
   }, [route])
 
   const polylines = route?.coords?.length > 1

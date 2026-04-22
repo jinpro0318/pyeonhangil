@@ -71,3 +71,17 @@ export function bboxCenter(b) {
 export function withinBbox(p, b) {
   return p.lat >= b.minLat && p.lat <= b.maxLat && p.lng >= b.minLng && p.lng <= b.maxLng
 }
+
+/**
+ * 점에서 폴리라인(경로)까지의 최단 거리 (미터)
+ * — 각 vertex 와의 haversine 중 최솟값 (route 점 간격이 충분히 촘촘할 때 근사치로 충분)
+ */
+export function minDistanceToPolyline(point, coords) {
+  if (!point || !coords?.length) return Infinity
+  let min = Infinity
+  for (const c of coords) {
+    const d = haversine(point, c)
+    if (d < min) min = d
+  }
+  return min
+}
