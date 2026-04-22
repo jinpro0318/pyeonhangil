@@ -6,14 +6,15 @@
 const cache = new Map()
 const CACHE_TTL_MS = 5 * 60 * 1000
 
-function cacheKey(o, d) {
-  return `${o.lat.toFixed(5)},${o.lng.toFixed(5)}->${d.lat.toFixed(5)},${d.lng.toFixed(5)}`
+function cacheKey(o, d, mode) {
+  return `${mode || 'walk'}:${o.lat.toFixed(5)},${o.lng.toFixed(5)}->${d.lat.toFixed(5)},${d.lng.toFixed(5)}`
 }
 
-export async function fetchRoute(origin, destination) {
+export async function fetchRoute(origin, destination, opts = {}) {
   if (!origin?.lat || !destination?.lat) return null
 
-  const key = cacheKey(origin, destination)
+  const mode = opts.mode || 'walk'
+  const key = cacheKey(origin, destination, mode)
   const cached = cache.get(key)
   if (cached && Date.now() - cached.ts < CACHE_TTL_MS) return cached.data
 
@@ -21,7 +22,7 @@ export async function fetchRoute(origin, destination) {
     const r = await fetch('/api/route', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ origin, destination }),
+      body: JSON.stringify({ origin, destination, mode }),
     })
     if (!r.ok) throw new Error(`route ${r.status}`)
     const data = await r.json()

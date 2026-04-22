@@ -8,8 +8,15 @@ import { fetchRoute } from '../services/routeApi'
 import { fetchPoisInBbox } from '../services/poiApi'
 import { bboxFromCoords, formatDistance, estimateMinutes, minDistanceToPolyline } from '../utils/geo'
 import { POI_TYPES } from '../data/pois'
+import { getActiveReports, reportToPoi, REPORT_TYPES } from '../services/reportsStore'
 import PoiDetailCard from '../components/PoiDetailCard'
 import './RouteSuggest.css'
+
+const MODES = [
+  { id: 'walk', label: '도보', emoji: '🚶' },
+  { id: 'car', label: '차량', emoji: '🚗' },
+  { id: 'transit', label: '대중교통', emoji: '🚉' },
+]
 
 // 우리 서비스 범주 — 이 외 타입은 지도에 표시하지 않음
 const SERVICE_TYPES = ['rest', 'toilet', 'elev', 'ramp', 'cross']
@@ -65,6 +72,8 @@ export default function RouteSuggest() {
   const [routePois, setRoutePois] = useState([])
   const [isRouting, setIsRouting] = useState(false)
   const [selectedPoi, setSelectedPoi] = useState(null)
+  const [mode, setMode] = useState('walk')
+  const [reports, setReports] = useState(getActiveReports())
 
   // 출발/도착 직접 편집 상태
   // originPick = null → GPS 현재 위치 사용. 직접 장소를 고르면 override.
@@ -82,20 +91,38 @@ export default function RouteSuggest() {
   const origin = originPick || position
   const destination = destPick || initialDestination
 
-  // 경로 fetch
+  // 경로 fetch (모드별)
   useEffect(() => {
     start()
     if (!origin?.lat || !destination?.lat) return
+    if (mode === 'transit') {
+      // 카카오에는 공개 대중교통 JSON API가 없음 → 직선만 그리고 외부 링크 유도
+      setRoute(null)
+      return
+    }
     setIsRouting(true)
     fetchRoute(
       { lat: origin.lat, lng: origin.lng },
-      { lat: destination.lat, lng: destination.lng }
+      { lat: destination.lat, lng: destination.lng },
+      { mode }
     )
       .then((r) => setRoute(r))
       .catch(() => setRoute(null))
       .finally(() => setIsRouting(false))
     // eslint-disable-next-line
-  }, [origin?.lat, origin?.lng, destination?.lat, destination?.lng])
+  }, [origin?.lat, origin?.lng, destination?.lat, destination?.lng, mode])
+
+  // 커뮤니티 제보 갱신 (페이지 보여질 때)
+  useEffect(() => {
+    const onFocus = () => setReports(getActiveReports())
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [])
+
+  // 경로와 50m 이내 제보 찾기
+  const nearbyReports = route?.coords?.length
+    ? reports.filter((r) => minDistanceToPolyline(r, route.coords) <= ROUTE_RADIUS_METERS)
+    : []
 
   // 자동완성 (debounced)
   useEffect(() => {
@@ -160,15 +187,17 @@ export default function RouteSuggest() {
     })
   }
 
+  const reportPois = reports.map(reportToPoi)
+
   const { isReady: isMapReady, error: mapError } = useKakaoMap(mapRef, {
-    pois: [...startEndPois, ...routePois.slice(0, 25)],
+    pois: [...startEndPois, ...routePois.slice(0, 25), ...reportPois],
     polylines,
     center: position,
     myLocation: position,
     level: 5,
     fitBoundsOnPolyline: true,
     onPoiClick: (poi) => {
-      if (poi.type === 'start') return // 내 위치는 카드 안 띄움
+      if (poi.type === 'start') return
       setSelectedPoi(poi)
     },
   })
@@ -216,6 +245,67 @@ export default function RouteSuggest() {
       </div>
 
       <div className="route-body">
+        {/* 이동 수단 스위처 */}
+        <div className="route-mode-switcher">
+          {MODES.map((m) => (
+            <button
+              key={m.id}
+              className={`route-mode-btn ${mode === m.id ? 'active' : ''}`}
+              onClick={() => setMode(m.id)}
+            >
+              <span className="route-mode-emoji">{m.emoji}</span>
+              <span>{m.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* 대중교통: 카카오 외부 링크 유도 */}
+        {mode === 'transit' && origin?.lat && destination?.lat && (
+          <div className="route-transit-hint">
+            대중교통은 카카오맵 길찾기에서 자세히 보실 수 있어요.
+            <button
+              className="btn secondary small"
+              onClick={() =>
+                window.open(
+                  `https://map.kakao.com/?sX=${origin.lng}&sY=${origin.lat}&eX=${destination.lng}&eY=${destination.lat}&target=traffic`,
+                  '_blank',
+                  'noopener,noreferrer'
+                )
+              }
+            >
+              카카오맵에서 대중교통 열기
+            </button>
+          </div>
+        )}
+
+        {/* 경로 위에 커뮤니티 제보가 있을 때 경고 */}
+        {nearbyReports.length > 0 && (
+          <div className="route-warning">
+            <div className="route-warning-icon">⚠️</div>
+            <div className="route-warning-body">
+              <div className="route-warning-title">
+                이 경로에 제보 {nearbyReports.length}건이 있어요
+              </div>
+              <div className="route-warning-list">
+                {nearbyReports.slice(0, 3).map((r) => {
+                  const meta = REPORT_TYPES[r.type] || REPORT_TYPES.other
+                  return (
+                    <span key={r.id} className="route-warning-chip">
+                      {meta.emoji} {meta.label}
+                    </span>
+                  )
+                })}
+              </div>
+            </div>
+            <button
+              className="btn secondary small"
+              onClick={() => navigate('/community')}
+            >
+              상세
+            </button>
+          </div>
+        )}
+
         <div className="route-map" ref={mapRef}>
           {!isMapReady && !mapError && (
             <div className="route-map-fallback">🗺️ 지도를 불러오는 중…</div>

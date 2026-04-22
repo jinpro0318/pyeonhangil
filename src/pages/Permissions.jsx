@@ -37,7 +37,7 @@ export default function Permissions() {
 
   const handleNext = () => {
     localStorage.setItem('pyeonhangil_onboarded', '1')
-    navigate('/walk-state')
+    navigate('/home')
   }
 
   const items = [

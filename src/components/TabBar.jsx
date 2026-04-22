@@ -4,6 +4,7 @@ import './TabBar.css'
 const TABS = [
   { path: '/home', label: '홈', icon: '🏠' },
   { path: '/map', label: '지도', icon: '🗺️' },
+  { path: '/community', label: '커뮤니티', icon: '💬' },
   { path: '/family', label: '가족', icon: '👨‍👩‍👧' },
   { path: '/my', label: '내 정보', icon: '👤' },
 ]

@@ -133,7 +133,7 @@ export default async function handler(req, res) {
   if (typeof body === 'string') {
     try { body = JSON.parse(body) } catch {}
   }
-  const { origin, destination } = body || {}
+  const { origin, destination, mode = 'walk' } = body || {}
 
   if (!origin?.lat || !origin?.lng || !destination?.lat || !destination?.lng) {
     res.status(400).json({ error: 'origin/destination {lat,lng} required' })
@@ -143,46 +143,48 @@ export default async function handler(req, res) {
   const tmapKey = process.env.TMAP_APP_KEY
   const kakaoKey = process.env.KAKAO_REST_API_KEY || process.env.VITE_KAKAO_REST_API_KEY
 
-  // 1) Tmap 보행자
+  const send = (out) => {
+    res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300')
+    res.status(200).json(out)
+  }
+
+  // 차량 모드: 카카오 자동차 우선
+  if (mode === 'car') {
+    if (kakaoKey) {
+      try {
+        const out = await tryKakaoDriving(origin, destination, kakaoKey)
+        if (out.coords.length >= 2) { send(out); return }
+      } catch (e) { console.warn('[route] car/kakao failed', e.message) }
+    }
+    res.status(200).json(STRAIGHT_FALLBACK(origin, destination))
+    return
+  }
+
+  // 대중교통: 공개 JSON API 없음 → 직선 + 외부 링크 힌트
+  if (mode === 'transit') {
+    const out = STRAIGHT_FALLBACK(origin, destination)
+    out.source = 'transit-external'
+    out.externalUrl = `https://map.kakao.com/?sX=${origin.lng}&sY=${origin.lat}&eX=${destination.lng}&eY=${destination.lat}&target=traffic`
+    res.status(200).json(out)
+    return
+  }
+
+  // 도보 (기본): Tmap → OSRM → 카카오 차량 근사 → 직선
   if (tmapKey) {
     try {
       const out = await tryTmap(origin, destination, tmapKey)
-      if (out.coords.length >= 2) {
-        res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300')
-        res.status(200).json(out)
-        return
-      }
-    } catch (e) {
-      console.warn('[route] tmap failed', e.message)
-    }
+      if (out.coords.length >= 2) { send(out); return }
+    } catch (e) { console.warn('[route] tmap failed', e.message) }
   }
-
-  // 2) OSRM 도보 (무키, 실제 보행자 길)
   try {
     const out = await tryOSRMFoot(origin, destination)
-    if (out.coords.length >= 2) {
-      res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300')
-      res.status(200).json(out)
-      return
-    }
-  } catch (e) {
-    console.warn('[route] osrm failed', e.message)
-  }
-
-  // 3) 카카오 자동차 (최후 근사치)
+    if (out.coords.length >= 2) { send(out); return }
+  } catch (e) { console.warn('[route] osrm failed', e.message) }
   if (kakaoKey) {
     try {
       const out = await tryKakaoDriving(origin, destination, kakaoKey)
-      if (out.coords.length >= 2) {
-        res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300')
-        res.status(200).json(out)
-        return
-      }
-    } catch (e) {
-      console.warn('[route] kakao failed', e.message)
-    }
+      if (out.coords.length >= 2) { send(out); return }
+    } catch (e) { console.warn('[route] kakao failed', e.message) }
   }
-
-  // 4) 직선 폴백
   res.status(200).json(STRAIGHT_FALLBACK(origin, destination))
 }

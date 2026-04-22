@@ -22,6 +22,7 @@ import SOS from './pages/SOS'
 // 설정
 import Family from './pages/Family'
 import MyInfo from './pages/MyInfo'
+import Community from './pages/Community'
 
 export default function App() {
   return (
@@ -49,6 +50,7 @@ export default function App() {
           {/* 설정 */}
           <Route path="/family" element={<Family />} />
           <Route path="/my" element={<MyInfo />} />
+          <Route path="/community" element={<Community />} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
