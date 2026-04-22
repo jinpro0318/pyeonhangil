@@ -7,6 +7,7 @@ import { useGPS } from '../hooks/useGPS'
 import { fetchRoute } from '../services/routeApi'
 import { fetchPoisInBbox } from '../services/poiApi'
 import { bboxFromCoords, formatDistance, estimateMinutes } from '../utils/geo'
+import { POI_TYPES } from '../data/pois'
 import PoiDetailCard from '../components/PoiDetailCard'
 import './RouteSuggest.css'
 
@@ -115,15 +116,15 @@ export default function RouteSuggest() {
     // eslint-disable-next-line
   }, [destText, activeField])
 
-  // 경로 주변(bbox) 쉼터/화장실/장애인편의시설
+  // 경로 주변(bbox) 쉼터 · 화장실 · 엘리베이터 · 경사로 · 무장애 시설
   useEffect(() => {
     if (!route?.coords?.length) return
     const bbox = bboxFromCoords(route.coords, 250)
     if (!bbox) return
     fetchPoisInBbox({
       bbox,
-      types: ['rest', 'toilet', 'elev', 'cross'],
-    }).then((list) => setRoutePois(list.slice(0, 30)))
+      types: ['rest', 'toilet', 'elev', 'ramp', 'cross'],
+    }).then((list) => setRoutePois(list.slice(0, 40)))
   }, [route])
 
   const polylines = route?.coords?.length > 1
@@ -151,7 +152,7 @@ export default function RouteSuggest() {
   }
 
   const { isReady: isMapReady, error: mapError } = useKakaoMap(mapRef, {
-    pois: [...startEndPois, ...routePois.slice(0, 12)],
+    pois: [...startEndPois, ...routePois.slice(0, 25)],
     polylines,
     center: position,
     myLocation: position,
@@ -186,6 +187,17 @@ export default function RouteSuggest() {
   const toiletCount = routePois.filter((p) => p.type === 'toilet').length
   const accessibleCount = routePois.filter((p) => p.type === 'cross').length
   const elevCount = routePois.filter((p) => p.type === 'elev').length
+  const rampCount = routePois.filter((p) => p.type === 'ramp').length
+
+  // 경로 주변에 실제 존재하는 타입만 범례로 표시
+  const LEGEND_ORDER = ['rest', 'toilet', 'elev', 'ramp', 'cross']
+  const legend = LEGEND_ORDER
+    .map((t) => ({
+      type: t,
+      count: routePois.filter((p) => p.type === t).length,
+      ...POI_TYPES[t],
+    }))
+    .filter((l) => l.count > 0)
 
   return (
     <div className="route-page">
@@ -215,6 +227,27 @@ export default function RouteSuggest() {
             </div>
           )}
         </div>
+
+        {/* 경로 주변 시설 범례 */}
+        {legend.length > 0 && (
+          <div className="route-legend">
+            <div className="route-legend-title">경로 주변 시설</div>
+            <div className="route-legend-chips no-scrollbar">
+              {legend.map((l) => (
+                <div key={l.type} className="route-legend-chip">
+                  <span
+                    className="route-legend-dot"
+                    style={{ background: l.color }}
+                  >
+                    {l.emoji}
+                  </span>
+                  <span className="route-legend-lbl">{l.label}</span>
+                  <span className="route-legend-cnt">{l.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="route-path-box">
           {/* 출발 */}
@@ -353,13 +386,15 @@ export default function RouteSuggest() {
               <span className="route-check">✓</span>
               <span>쉴 곳 {restCount}곳 · 화장실 {toiletCount}곳</span>
             </div>
-            {(elevCount > 0 || accessibleCount > 0) && (
+            {(elevCount > 0 || rampCount > 0 || accessibleCount > 0) && (
               <div className="route-feat">
                 <span className="route-check">✓</span>
                 <span>
-                  {elevCount > 0 && `엘리베이터 ${elevCount}곳`}
-                  {elevCount > 0 && accessibleCount > 0 && ' · '}
-                  {accessibleCount > 0 && `장애인 편의시설 ${accessibleCount}곳`}
+                  {[
+                    elevCount > 0 && `엘리베이터 ${elevCount}곳`,
+                    rampCount > 0 && `경사로 ${rampCount}곳`,
+                    accessibleCount > 0 && `장애인 편의시설 ${accessibleCount}곳`,
+                  ].filter(Boolean).join(' · ')}
                 </span>
               </div>
             )}

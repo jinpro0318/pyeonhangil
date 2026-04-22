@@ -123,16 +123,18 @@ function poiMarkerHtml(poi) {
     `
   }
 
-  // 일반 POI: 지도를 덜 가리도록 작은 컬러 점
+  // 일반 POI: 색 원 + 이모지 (작지만 타입 식별 가능)
   return `
     <div data-poi-id="${escapeHtml(poi.id)}" style="
-      width:16px; height:16px;
+      width:22px; height:22px;
       background:${color};
       border-radius:50%;
-      border:2px solid white;
-      box-shadow:0 1px 4px rgba(0,0,0,0.25);
+      border:2.5px solid white;
+      box-shadow:0 1px 4px rgba(0,0,0,0.3);
       cursor:pointer;
-    "></div>
+      display:flex; align-items:center; justify-content:center;
+      font-size:11px; line-height:1;
+    ">${icon}</div>
   `
 }
 

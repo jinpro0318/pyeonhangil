@@ -46,13 +46,13 @@ export default function Navigation() {
       if (!bbox) return
       fetchPoisInBbox({
         bbox,
-        types: ['rest', 'toilet', 'elev', 'cross'],
-      }).then((list) => setNearbyPois(list.slice(0, 20)))
+        types: ['rest', 'toilet', 'elev', 'ramp', 'cross'],
+      }).then((list) => setNearbyPois(list.slice(0, 24)))
       return
     }
     if (!position) return
-    fetchPois({ center: position, types: ['rest', 'toilet', 'elev'], radius: 800 }).then((list) =>
-      setNearbyPois(list.slice(0, 8))
+    fetchPois({ center: position, types: ['rest', 'toilet', 'elev', 'ramp'], radius: 800 }).then((list) =>
+      setNearbyPois(list.slice(0, 10))
     )
   }, [route, position?.lat])
 
