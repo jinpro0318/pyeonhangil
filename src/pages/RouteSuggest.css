@@ -30,11 +30,13 @@
 
 .route-map {
   position: relative;
-  height: 180px;
+  height: 320px;
+  min-height: 40vh;
   border-radius: 16px;
   overflow: hidden;
   background: var(--bg-muted);
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .route-map > div {
@@ -57,6 +59,14 @@
   background: var(--bg-muted);
   border-radius: 16px;
   padding: 14px 18px;
+}
+
+.route-point-addr {
+  margin-left: 22px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--ink-500);
+  font-weight: 500;
 }
 
 .route-point {

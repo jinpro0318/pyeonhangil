@@ -29,16 +29,17 @@ export default function RouteSuggest() {
 
   const [route, setRoute] = useState(null)
   const [routePois, setRoutePois] = useState([])
+  const [isRouting, setIsRouting] = useState(false)
 
   // 경로 fetch
   useEffect(() => {
     start()
     if (!position || !destination?.lat) return
+    setIsRouting(true)
     fetchRoute(position, { lat: destination.lat, lng: destination.lng })
-      .then((r) => {
-        setRoute(r)
-      })
+      .then((r) => setRoute(r))
       .catch(() => setRoute(null))
+      .finally(() => setIsRouting(false))
     // eslint-disable-next-line
   }, [position?.lat, position?.lng, destination?.lat, destination?.lng])
 
@@ -58,6 +59,15 @@ export default function RouteSuggest() {
     : []
 
   const startEndPois = []
+  if (position?.lat) {
+    startEndPois.push({
+      id: 'route_start',
+      type: 'start',
+      name: '지금 여기',
+      lat: position.lat,
+      lng: position.lng,
+    })
+  }
   if (destination?.lat) {
     startEndPois.push({
       id: 'route_end',
@@ -69,7 +79,7 @@ export default function RouteSuggest() {
   }
 
   useKakaoMap(mapRef, {
-    pois: [...startEndPois, ...routePois.slice(0, 12)],
+    pois: [...startEndPois, ...routePois.slice(0, 8)],
     polylines,
     center: position,
     myLocation: position,
@@ -110,7 +120,9 @@ export default function RouteSuggest() {
 
       <div className="route-body">
         <div className="route-map" ref={mapRef}>
-          {!route && <div className="route-map-fallback">🗺️ 경로 그리는 중...</div>}
+          {(!route || isRouting) && (
+            <div className="route-map-fallback">🗺️ 편한 길을 그리고 있어요…</div>
+          )}
         </div>
 
         <div className="route-path-box">
@@ -123,10 +135,9 @@ export default function RouteSuggest() {
             <div className="route-dot end" />
             <div className="route-point-label strong">{destination.name}</div>
           </div>
-        </div>
-
-        <div className={`chip ${walk.color}`} style={{ alignSelf: 'flex-start' }}>
-          {walk.emoji} {walk.name} · 걸음 기준 맞춤
+          {destination.address && (
+            <div className="route-point-addr">{destination.address}</div>
+          )}
         </div>
 
         <div className="route-recommend">
@@ -140,14 +151,18 @@ export default function RouteSuggest() {
             )}
           </div>
 
+          <div className={`chip ${walk.color}`} style={{ alignSelf: 'flex-start', marginTop: 10 }}>
+            {walk.emoji} {walk.name} · 걸음 기준 맞춤
+          </div>
+
           <div className="route-features">
             <div className="route-feat">
               <span className="route-check">✓</span>
               <span>
-                {route?.source === 'tmap' && '실제 보행자 도로 따라감'}
+                {route?.source === 'tmap' && '실제 보행자 도로 따라가는 경로'}
                 {route?.source === 'kakao-driving' && '큰길 위주 우회 경로'}
                 {(!route || route.source === 'straight' || route.source === 'client-straight') &&
-                  '직선 경로 (백업)'}
+                  '직선 기준 예상 경로'}
               </span>
             </div>
             <div className="route-feat">
@@ -170,8 +185,6 @@ export default function RouteSuggest() {
             </div>
           </div>
         </div>
-
-        <button className="btn ghost">다른 길도 볼까요? ›</button>
       </div>
 
       <div className="route-footer">

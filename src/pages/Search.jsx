@@ -6,11 +6,30 @@ import { useGPS } from '../hooks/useGPS'
 import './Search.css'
 
 const FALLBACK_DESTINATIONS = [
-  { name: '서울대학교병원', address: '서울 종로구 대학로 101', lat: 37.579617, lng: 126.998292 },
-  { name: '종로3가역', address: '서울 종로구 종로', lat: 37.571607, lng: 126.992004 },
-  { name: '탑골공원', address: '서울 종로구 종로 99', lat: 37.571191, lng: 126.988401 },
-  { name: '광화문역', address: '서울 종로구 세종대로', lat: 37.571607, lng: 126.976620 },
+  { name: '서울대학교병원', address: '서울 종로구 대학로 101', lat: 37.579617, lng: 126.998292, keywords: ['병원', '의원', '아파', '진료'] },
+  { name: '종로3가역', address: '서울 종로구 종로', lat: 37.571607, lng: 126.992004, keywords: ['지하철', '역', '전철'] },
+  { name: '탑골공원', address: '서울 종로구 종로 99', lat: 37.571191, lng: 126.988401, keywords: ['공원', '산책', '쉬'] },
+  { name: '광화문역', address: '서울 종로구 세종대로', lat: 37.571607, lng: 126.976620, keywords: ['광화문', '시청', '지하철'] },
 ]
+
+// 음성 입력에서 불필요한 조사·어미 제거 → 핵심 키워드만 추출
+// "병원 가고 싶어요" → "병원"
+function extractKeyword(raw) {
+  if (!raw) return ''
+  return raw
+    .replace(/(에|으로|로|까지|에서)?\s*(가고\s*싶어요|가고\s*싶다|가줘|가자|가요|가|데려다\s*줘|찾아줘|알려줘|보여줘)\s*$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function fuzzyFallback(query) {
+  if (!query) return []
+  const q = query.toLowerCase()
+  return FALLBACK_DESTINATIONS.filter((d) => {
+    if (d.name.includes(query) || query.includes(d.name.slice(0, 2))) return true
+    return (d.keywords || []).some((k) => q.includes(k))
+  })
+}
 
 async function searchKakaoPlaces(query, center) {
   if (!query) return []
@@ -82,18 +101,28 @@ export default function Search() {
   }, [text, mode])
 
   const doSearch = async (q) => {
-    const query = q.trim()
-    if (!query) return
+    const raw = q.trim()
+    if (!raw) return
+    const query = extractKeyword(raw) || raw
     setIsSearching(true)
     setHasSearched(true)
-    const found = await searchKakaoPlaces(query, position)
+
+    // 1) 카카오 로컬 API 시도 (실패하거나 0건이면 키워드만으로 재시도)
+    let found = await searchKakaoPlaces(query, position)
+    if (found.length === 0 && query !== raw) {
+      found = await searchKakaoPlaces(raw, position)
+    }
+
+    // 2) fuzzy 폴백 → 여전히 없으면 최소 1건(서울대병원)은 보장
+    const fallback = fuzzyFallback(query).concat(fuzzyFallback(raw))
     const list = found.length > 0
       ? found
-      : FALLBACK_DESTINATIONS.filter((d) => d.name.includes(query) || query.includes(d.name.slice(0, 2)))
+      : (fallback.length > 0 ? fallback : [FALLBACK_DESTINATIONS[0]])
+
     setResults(list.slice(0, 8))
     setIsSearching(false)
 
-    // 음성 모드: 자동으로 첫 결과로 이동
+    // 음성 모드도 API가 실패할 수 있으므로 결과가 보장되어야 다음 페이지로 넘어감
     if (mode === 'voice' && list[0]) {
       setTimeout(() => goTo(list[0]), 600)
     }
