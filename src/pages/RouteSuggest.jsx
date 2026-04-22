@@ -10,6 +10,34 @@ import { bboxFromCoords, formatDistance, estimateMinutes } from '../utils/geo'
 import PoiDetailCard from '../components/PoiDetailCard'
 import './RouteSuggest.css'
 
+// 카카오 로컬 검색 — 타이핑 자동완성용
+async function kakaoSuggest(query, center) {
+  if (!query || query.trim().length < 1) return []
+  const params = new URLSearchParams({ query })
+  if (center?.lat) {
+    params.set('x', String(center.lng))
+    params.set('y', String(center.lat))
+    params.set('radius', '10000')
+  } else {
+    params.set('x', '126.978')
+    params.set('y', '37.566')
+    params.set('radius', '20000')
+  }
+  try {
+    const r = await fetch(`/api/local?${params.toString()}`)
+    if (!r.ok) return []
+    const data = await r.json()
+    return (data.pois || []).slice(0, 6).map((p) => ({
+      name: p.name,
+      address: p.address || '',
+      lat: p.lat,
+      lng: p.lng,
+    }))
+  } catch {
+    return []
+  }
+}
+
 export default function RouteSuggest() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -18,7 +46,7 @@ export default function RouteSuggest() {
   const { speak } = useVoice()
   const { position, start } = useGPS({ enableStayDetection: false })
 
-  const destination = location.state?.destination ||
+  const initialDestination = location.state?.destination ||
     state.destination || {
       name: '서울대학교병원',
       address: '서울 종로구 대학로 101',
@@ -33,17 +61,59 @@ export default function RouteSuggest() {
   const [isRouting, setIsRouting] = useState(false)
   const [selectedPoi, setSelectedPoi] = useState(null)
 
+  // 출발/도착 직접 편집 상태
+  // originPick = null → GPS 현재 위치 사용. 직접 장소를 고르면 override.
+  const [originText, setOriginText] = useState('')
+  const [originPick, setOriginPick] = useState(null)
+  const [destText, setDestText] = useState(initialDestination.name || '')
+  const [destPick, setDestPick] = useState(initialDestination)
+  const [originSug, setOriginSug] = useState([])
+  const [destSug, setDestSug] = useState([])
+  const [activeField, setActiveField] = useState(null) // 'origin' | 'dest' | null
+  const originDebRef = useRef(null)
+  const destDebRef = useRef(null)
+
+  // 실제 경로 계산에 사용될 출발/도착
+  const origin = originPick || position
+  const destination = destPick || initialDestination
+
   // 경로 fetch
   useEffect(() => {
     start()
-    if (!position || !destination?.lat) return
+    if (!origin?.lat || !destination?.lat) return
     setIsRouting(true)
-    fetchRoute(position, { lat: destination.lat, lng: destination.lng })
+    fetchRoute(
+      { lat: origin.lat, lng: origin.lng },
+      { lat: destination.lat, lng: destination.lng }
+    )
       .then((r) => setRoute(r))
       .catch(() => setRoute(null))
       .finally(() => setIsRouting(false))
     // eslint-disable-next-line
-  }, [position?.lat, position?.lng, destination?.lat, destination?.lng])
+  }, [origin?.lat, origin?.lng, destination?.lat, destination?.lng])
+
+  // 자동완성 (debounced)
+  useEffect(() => {
+    if (activeField !== 'origin') return
+    if (originPick && originText === originPick.name) { setOriginSug([]); return }
+    if (originDebRef.current) clearTimeout(originDebRef.current)
+    originDebRef.current = setTimeout(async () => {
+      setOriginSug(await kakaoSuggest(originText, position))
+    }, 250)
+    return () => clearTimeout(originDebRef.current)
+    // eslint-disable-next-line
+  }, [originText, activeField])
+
+  useEffect(() => {
+    if (activeField !== 'dest') return
+    if (destPick && destText === destPick.name) { setDestSug([]); return }
+    if (destDebRef.current) clearTimeout(destDebRef.current)
+    destDebRef.current = setTimeout(async () => {
+      setDestSug(await kakaoSuggest(destText, position))
+    }, 250)
+    return () => clearTimeout(destDebRef.current)
+    // eslint-disable-next-line
+  }, [destText, activeField])
 
   // 경로 주변(bbox) 쉼터/화장실/장애인편의시설
   useEffect(() => {
@@ -61,13 +131,13 @@ export default function RouteSuggest() {
     : []
 
   const startEndPois = []
-  if (position?.lat) {
+  if (origin?.lat) {
     startEndPois.push({
       id: 'route_start',
       type: 'start',
-      name: '지금 여기',
-      lat: position.lat,
-      lng: position.lng,
+      name: originPick ? originPick.name : '지금 여기',
+      lat: origin.lat,
+      lng: origin.lng,
     })
   }
   if (destination?.lat) {
@@ -147,16 +217,108 @@ export default function RouteSuggest() {
         </div>
 
         <div className="route-path-box">
-          <div className="route-point">
+          {/* 출발 */}
+          <div className="route-field">
             <div className="route-dot start" />
-            <div className="route-point-label">지금 여기</div>
+            <input
+              type="text"
+              className="route-input"
+              placeholder="출발 — 비우면 현재 위치"
+              value={originText}
+              onChange={(e) => {
+                setOriginText(e.target.value)
+                setOriginPick(null)
+              }}
+              onFocus={() => setActiveField('origin')}
+              onBlur={() => setTimeout(() => setActiveField(null), 200)}
+              enterKeyHint="search"
+            />
+            {(originText || originPick) && (
+              <button
+                type="button"
+                className="route-clear"
+                aria-label="출발 지우기"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  setOriginText('')
+                  setOriginPick(null)
+                  setOriginSug([])
+                }}
+              >✕</button>
+            )}
+            {activeField === 'origin' && originSug.length > 0 && (
+              <ul className="route-sug">
+                {originSug.map((s, i) => (
+                  <li
+                    key={`${s.name}-${s.lat}-${i}`}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setOriginPick(s)
+                      setOriginText(s.name)
+                      setOriginSug([])
+                      setActiveField(null)
+                    }}
+                  >
+                    <b>{s.name}</b>
+                    {s.address && <span>{s.address}</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+
           <div className="route-line" />
-          <div className="route-point">
+
+          {/* 도착 */}
+          <div className="route-field">
             <div className="route-dot end" />
-            <div className="route-point-label strong">{destination.name}</div>
+            <input
+              type="text"
+              className="route-input strong"
+              placeholder="도착지를 입력하세요"
+              value={destText}
+              onChange={(e) => {
+                setDestText(e.target.value)
+                setDestPick(null)
+              }}
+              onFocus={() => setActiveField('dest')}
+              onBlur={() => setTimeout(() => setActiveField(null), 200)}
+              enterKeyHint="search"
+            />
+            {destText && (
+              <button
+                type="button"
+                className="route-clear"
+                aria-label="도착 지우기"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  setDestText('')
+                  setDestPick(null)
+                  setDestSug([])
+                }}
+              >✕</button>
+            )}
+            {activeField === 'dest' && destSug.length > 0 && (
+              <ul className="route-sug">
+                {destSug.map((s, i) => (
+                  <li
+                    key={`${s.name}-${s.lat}-${i}`}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setDestPick(s)
+                      setDestText(s.name)
+                      setDestSug([])
+                      setActiveField(null)
+                    }}
+                  >
+                    <b>{s.name}</b>
+                    {s.address && <span>{s.address}</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-          {destination.address && (
+          {destination?.address && destPick && (
             <div className="route-point-addr">{destination.address}</div>
           )}
         </div>

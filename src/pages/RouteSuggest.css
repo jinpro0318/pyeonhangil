@@ -98,7 +98,9 @@
 .route-path-box {
   background: var(--bg-muted);
   border-radius: 16px;
-  padding: 14px 18px;
+  padding: 10px 14px;
+  position: relative;
+  z-index: 2;
 }
 
 .route-point-addr {
@@ -107,6 +109,111 @@
   font-size: 13px;
   color: var(--ink-500);
   font-weight: 500;
+}
+
+.route-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  position: relative;
+}
+
+.route-input {
+  flex: 1;
+  background: white;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  padding: 10px 36px 10px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-900, #111);
+  font-family: inherit;
+  min-width: 0;
+  transition: border-color 0.15s;
+}
+
+.route-input::placeholder {
+  color: var(--ink-500, #8a8f98);
+  font-weight: 500;
+}
+
+.route-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.route-input.strong {
+  font-weight: 700;
+}
+
+.route-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ink-200, #cfd3da);
+  color: white;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  padding: 0;
+}
+.route-clear:active {
+  transform: translateY(-50%) scale(0.92);
+}
+
+.route-sug {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 22px;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border, #eaecef);
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.route-sug li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-soft, #f3f4f7);
+}
+
+.route-sug li:last-child {
+  border-bottom: none;
+}
+
+.route-sug li:hover,
+.route-sug li:active {
+  background: var(--bg-muted, #f5f6fa);
+}
+
+.route-sug li b {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-900);
+}
+
+.route-sug li span {
+  font-size: 12px;
+  color: var(--ink-500);
 }
 
 .route-point {
