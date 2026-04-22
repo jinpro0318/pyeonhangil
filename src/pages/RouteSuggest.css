@@ -324,5 +324,15 @@
 }
 
 .route-footer {
-  padding: 16px 0 24px;
+  padding: 12px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.route-footer .btn.small {
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 42px;
 }

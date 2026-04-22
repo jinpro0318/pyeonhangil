@@ -182,6 +182,22 @@ export default function RouteSuggest() {
     navigate('/navigation')
   }
 
+  // 카카오맵 도보 길찾기 URL — 앱이면 kakaomap:// 스킴, 아니면 web
+  // 참고: https://developers.kakao.com/docs/latest/ko/local/dev-guide#link
+  const kakaoWalkUrl = (() => {
+    if (!origin?.lat || !destination?.lat) return ''
+    const sName = encodeURIComponent((originPick?.name || '지금 여기').replace(/,/g, ' '))
+    const eName = encodeURIComponent((destination.name || '도착').replace(/,/g, ' '))
+    // /link/from/.../to/... 뒤에 by=FOOT 를 붙여 도보 모드로 진입 유도
+    return `https://map.kakao.com/link/from/${sName},${origin.lat},${origin.lng}/to/${eName},${destination.lat},${destination.lng}?by=FOOT`
+  })()
+
+  const openKakaoWalk = () => {
+    if (!kakaoWalkUrl) return
+    // 모바일 카카오맵 앱이 설치되어 있으면 바로 열림 (universal link)
+    window.open(kakaoWalkUrl, '_blank', 'noopener,noreferrer')
+  }
+
   const restCount = routePois.filter((p) => p.type === 'rest').length
   const toiletCount = routePois.filter((p) => p.type === 'toilet').length
   const accessibleCount = routePois.filter((p) => p.type === 'cross').length
@@ -343,7 +359,7 @@ export default function RouteSuggest() {
               <span className="route-check">✓</span>
               <span>
                 {route?.source === 'tmap' && '실제 보행자 도로 따라가는 경로'}
-                {route?.source === 'kakao-driving' && '큰길 위주 우회 경로'}
+                {route?.source === 'kakao-driving' && '큰길 기준 도보 근사 경로 (상세는 카카오맵 도보)'}
                 {(!route || route.source === 'straight' || route.source === 'client-straight') &&
                   '직선 기준 예상 경로'}
               </span>
@@ -371,6 +387,13 @@ export default function RouteSuggest() {
       </div>
 
       <div className="route-footer">
+        <button
+          className="btn ghost small"
+          onClick={openKakaoWalk}
+          disabled={!kakaoWalkUrl}
+        >
+          🚶 카카오맵 도보 길찾기로 열기
+        </button>
         <button className="btn large" onClick={handleStart}>
           이 길로 갈게요
         </button>
