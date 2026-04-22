@@ -78,7 +78,7 @@ export default function RouteSuggest() {
     })
   }
 
-  useKakaoMap(mapRef, {
+  const { isReady: isMapReady, error: mapError } = useKakaoMap(mapRef, {
     pois: [...startEndPois, ...routePois.slice(0, 8)],
     polylines,
     center: position,
@@ -120,8 +120,23 @@ export default function RouteSuggest() {
 
       <div className="route-body">
         <div className="route-map" ref={mapRef}>
-          {(!route || isRouting) && (
+          {!isMapReady && !mapError && (
+            <div className="route-map-fallback">🗺️ 지도를 불러오는 중…</div>
+          )}
+          {isMapReady && (!route || isRouting) && (
             <div className="route-map-fallback">🗺️ 편한 길을 그리고 있어요…</div>
+          )}
+          {mapError && (
+            <div className="route-map-error">
+              <div className="route-map-error-title">🗺️ 지도를 불러올 수 없어요</div>
+              <div className="route-map-error-msg">{mapError}</div>
+              <ol className="route-map-error-list">
+                <li>카카오 콘솔 → <b>편한길 앱</b> → 앱 설정 → 플랫폼 → <b>Web 플랫폼</b></li>
+                <li>사이트 도메인에 <code>https://pyeonhangil.vercel.app</code> 추가</li>
+                <li>Vercel 환경변수 <code>VITE_KAKAO_JS_KEY</code> 확인 후 재배포</li>
+              </ol>
+              <button className="btn ghost" onClick={() => window.location.reload()}>다시 시도</button>
+            </div>
           )}
         </div>
 

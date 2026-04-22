@@ -55,6 +55,45 @@
   pointer-events: none;
 }
 
+.route-map-error {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-muted);
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.route-map-error-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+.route-map-error-msg {
+  font-size: 13px;
+  color: var(--ink-500);
+  line-height: 1.5;
+}
+
+.route-map-error-list {
+  margin: 6px 0 10px 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-700, #444);
+}
+
+.route-map-error-list code {
+  background: var(--bg, #f5f6fa);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: ui-monospace, Menlo, monospace;
+}
+
 .route-path-box {
   background: var(--bg-muted);
   border-radius: 16px;
