@@ -19,7 +19,7 @@ export default function AppBrand() {
       className="absolute top-2 left-2 z-[200] grid place-items-center transition-transform hover:scale-105 active:scale-95 bg-transparent border-0 p-0"
     >
       <img
-        src="/pyeonhangil_icon.png"
+        src="/pyeonhangil_icon_20260521.png"
         alt="편한길"
         className="w-12 h-12 object-contain"
       />
