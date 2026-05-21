@@ -32,16 +32,21 @@ export default function Intro() {
   const [step, setStep] = useState(0)
   const current = STEPS[step]
 
+  const goHome = () => {
+    localStorage.setItem('pyeonhangil_onboarded', '1')
+    navigate('/home', { replace: true })
+  }
+
   const handleNext = () => {
     if (step < STEPS.length - 1) setStep(step + 1)
-    else navigate('/permissions')
+    else goHome()
   }
 
   return (
     <div className="flex-1 flex flex-col px-6 py-6 bg-background">
       <div className="min-h-[64px] flex justify-end items-center pl-[64px]">
         <button
-          onClick={() => navigate('/permissions')}
+          onClick={goHome}
           className="text-sm font-bold text-ink-500 py-2 px-3 rounded-lg hover:bg-white border border-transparent hover:border-ink-200"
         >
           건너뛰기 ›
