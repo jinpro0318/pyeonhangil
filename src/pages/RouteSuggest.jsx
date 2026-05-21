@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import {
+  ChevronLeft, AlertTriangle, Check, X as XIcon,
+  Armchair, Bus, Database, Footprints, ShieldCheck, Train,
+} from 'lucide-react'
 import { useAppState, WALK_STATES } from '../hooks/useAppState'
 import { useVoice } from '../hooks/useVoice'
 import { useKakaoMap } from '../hooks/useKakaoMap'
@@ -10,19 +14,12 @@ import { bboxFromCoords, formatDistance, estimateMinutes, minDistanceToPolyline 
 import { POI_TYPES } from '../data/pois'
 import { getActiveReports, reportToPoi, REPORT_TYPES } from '../services/reportsStore'
 import PoiDetailCard from '../components/PoiDetailCard'
-import './RouteSuggest.css'
+import { Button } from '../components/ui/button'
+import { cn } from '@/lib/utils'
 
-const MODES = [
-  { id: 'walk', label: '도보', emoji: '🚶' },
-  { id: 'car', label: '차량', emoji: '🚗' },
-  { id: 'transit', label: '대중교통', emoji: '🚉' },
-]
-
-// 우리 서비스 범주 — 이 외 타입은 지도에 표시하지 않음
 const SERVICE_TYPES = ['rest', 'toilet', 'elev', 'ramp', 'cross']
 const ROUTE_RADIUS_METERS = 50
 
-// 카카오 로컬 검색 — 타이핑 자동완성용
 async function kakaoSuggest(query, center) {
   if (!query || query.trim().length < 1) return []
   const params = new URLSearchParams({ query })
@@ -40,14 +37,17 @@ async function kakaoSuggest(query, center) {
     if (!r.ok) return []
     const data = await r.json()
     return (data.pois || []).slice(0, 6).map((p) => ({
-      name: p.name,
-      address: p.address || '',
-      lat: p.lat,
-      lng: p.lng,
+      name: p.name, address: p.address || '', lat: p.lat, lng: p.lng,
     }))
-  } catch {
-    return []
-  }
+  } catch { return [] }
+}
+
+const WALK_CHIP = {
+  older: 'bg-success-50 text-success-600',
+  wheelchair: 'bg-primary-50 text-primary',
+  visual: 'bg-warning-50 text-warning',
+  stroller: 'bg-walk-stroller-soft text-walk-stroller',
+  injured: 'bg-danger-50 text-danger',
 }
 
 export default function RouteSuggest() {
@@ -56,75 +56,60 @@ export default function RouteSuggest() {
   const mapRef = useRef(null)
   const { state, setDestination, setActiveRoute } = useAppState()
   const { speak } = useVoice()
-  const { position, start } = useGPS({ enableStayDetection: false })
+  const { position, hasPosition, error: gpsError, start } = useGPS({ enableStayDetection: false })
 
   const initialDestination = location.state?.destination ||
     state.destination || {
       name: '서울대학교병원',
       address: '서울 종로구 대학로 101',
-      lat: 37.579617,
-      lng: 126.998292,
+      lat: 37.579617, lng: 126.998292,
     }
-
-  const walk = WALK_STATES[state.user.walkState]
+  const walk = WALK_STATES[state.user.walkState] || WALK_STATES.older
 
   const [route, setRoute] = useState(null)
   const [routePois, setRoutePois] = useState([])
   const [isRouting, setIsRouting] = useState(false)
   const [selectedPoi, setSelectedPoi] = useState(null)
-  const [mode, setMode] = useState('walk')
   const [reports, setReports] = useState(getActiveReports())
 
-  // 출발/도착 직접 편집 상태
-  // originPick = null → GPS 현재 위치 사용. 직접 장소를 고르면 override.
   const [originText, setOriginText] = useState('')
   const [originPick, setOriginPick] = useState(null)
   const [destText, setDestText] = useState(initialDestination.name || '')
   const [destPick, setDestPick] = useState(initialDestination)
   const [originSug, setOriginSug] = useState([])
   const [destSug, setDestSug] = useState([])
-  const [activeField, setActiveField] = useState(null) // 'origin' | 'dest' | null
+  const [activeField, setActiveField] = useState(null)
   const originDebRef = useRef(null)
   const destDebRef = useRef(null)
 
-  // 실제 경로 계산에 사용될 출발/도착
-  const origin = originPick || position
+  const origin = originPick || (hasPosition ? position : null)
   const destination = destPick || initialDestination
 
-  // 경로 fetch (모드별)
   useEffect(() => {
     start()
     if (!origin?.lat || !destination?.lat) return
-    if (mode === 'transit') {
-      // 카카오에는 공개 대중교통 JSON API가 없음 → 직선만 그리고 외부 링크 유도
-      setRoute(null)
-      return
-    }
     setIsRouting(true)
     fetchRoute(
       { lat: origin.lat, lng: origin.lng },
       { lat: destination.lat, lng: destination.lng },
-      { mode }
+      { mode: 'walk' }
     )
       .then((r) => setRoute(r))
       .catch(() => setRoute(null))
       .finally(() => setIsRouting(false))
     // eslint-disable-next-line
-  }, [origin?.lat, origin?.lng, destination?.lat, destination?.lng, mode])
+  }, [origin?.lat, origin?.lng, destination?.lat, destination?.lng])
 
-  // 커뮤니티 제보 갱신 (페이지 보여질 때)
   useEffect(() => {
     const onFocus = () => setReports(getActiveReports())
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
   }, [])
 
-  // 경로와 50m 이내 제보 찾기
   const nearbyReports = route?.coords?.length
     ? reports.filter((r) => minDistanceToPolyline(r, route.coords) <= ROUTE_RADIUS_METERS)
     : []
 
-  // 자동완성 (debounced)
   useEffect(() => {
     if (activeField !== 'origin') return
     if (originPick && originText === originPick.name) { setOriginSug([]); return }
@@ -147,10 +132,8 @@ export default function RouteSuggest() {
     // eslint-disable-next-line
   }, [destText, activeField])
 
-  // 경로에서 50m 이내 & 우리 서비스 범주인 POI 만 표시
   useEffect(() => {
     if (!route?.coords?.length) return
-    // bbox 는 50m + 여유 10m 로 작게 — 넓게 받고 정원형(50m) 필터링
     const bbox = bboxFromCoords(route.coords, ROUTE_RADIUS_METERS + 10)
     if (!bbox) return
     fetchPoisInBbox({ bbox, types: SERVICE_TYPES }).then((list) => {
@@ -164,53 +147,41 @@ export default function RouteSuggest() {
   }, [route])
 
   const polylines = route?.coords?.length > 1
-    ? [{ path: route.coords, color: '#3182F6', weight: 7, opacity: 0.85 }]
-    : []
+    ? [{ path: route.coords, color: '#3182F6', weight: 7, opacity: 0.85 }] : []
 
   const startEndPois = []
   if (origin?.lat) {
     startEndPois.push({
-      id: 'route_start',
-      type: 'start',
+      id: 'route_start', type: 'start',
       name: originPick ? originPick.name : '지금 여기',
-      lat: origin.lat,
-      lng: origin.lng,
+      lat: origin.lat, lng: origin.lng,
     })
   }
   if (destination?.lat) {
     startEndPois.push({
-      id: 'route_end',
-      type: 'end',
-      name: destination.name,
-      lat: destination.lat,
-      lng: destination.lng,
+      id: 'route_end', type: 'end', name: destination.name,
+      lat: destination.lat, lng: destination.lng,
     })
   }
-
   const reportPois = reports.map(reportToPoi)
 
   const { isReady: isMapReady, error: mapError } = useKakaoMap(mapRef, {
     pois: [...startEndPois, ...routePois.slice(0, 25), ...reportPois],
-    polylines,
-    center: position,
-    myLocation: position,
-    level: 5,
-    fitBoundsOnPolyline: true,
-    onPoiClick: (poi) => {
-      if (poi.type === 'start') return
-      setSelectedPoi(poi)
-    },
+    polylines, center: position, myLocation: hasPosition ? position : null,
+    level: 5, fitBoundsOnPolyline: true,
+    onPoiClick: (poi) => { if (poi.type !== 'start') setSelectedPoi(poi) },
   })
 
-  // 거리 -> 시간 추정 (실측 거리 우선, 없으면 직선)
   const distanceMeters = route?.distanceMeters || 0
   const minutes = distanceMeters
     ? Math.max(estimateMinutes(distanceMeters, walk.id), Math.round((route?.durationSeconds || 0) / 60))
-    : (walk.id === 'slow' ? 18 : walk.id === 'very-slow' ? 24 : walk.id === 'needs-help' ? 30 : 20)
+    : (walk.id === 'wheelchair' ? 30 : walk.id === 'visual' ? 24 : walk.id === 'injured' ? 24 : 20)
 
   useEffect(() => {
     if (route) {
-      speak(`${destination.name}까지 ${minutes}분 걸리는 편한 길을 찾았어요`)
+      speak(`${destination.name}까지 ${minutes}분 걸리는 편한 길을 찾았어요`, {
+        onceKey: `route-found:${destination.name}:${Math.round(distanceMeters / 50)}`,
+      })
     }
     // eslint-disable-next-line
   }, [route])
@@ -226,293 +197,313 @@ export default function RouteSuggest() {
   const accessibleCount = routePois.filter((p) => p.type === 'cross').length
   const elevCount = routePois.filter((p) => p.type === 'elev').length
   const rampCount = routePois.filter((p) => p.type === 'ramp').length
+  const burdenScore = Math.max(72, Math.min(96, 88 + Math.min(restCount, 3) * 2 + Math.min(elevCount + rampCount, 2) * 2 - nearbyReports.length * 3))
 
-  // 경로 주변에 실제 존재하는 타입만 범례로 표시
   const LEGEND_ORDER = ['rest', 'toilet', 'elev', 'ramp', 'cross']
   const legend = LEGEND_ORDER
-    .map((t) => ({
-      type: t,
-      count: routePois.filter((p) => p.type === t).length,
-      ...POI_TYPES[t],
-    }))
+    .map((t) => ({ type: t, count: routePois.filter((p) => p.type === t).length, ...POI_TYPES[t] }))
     .filter((l) => l.count > 0)
 
   return (
-    <div className="route-page">
-      <div className="route-header">
-        <button className="search-back" onClick={() => navigate(-1)}>‹</button>
-        <h2>편한 길</h2>
+    <div className="flex-1 flex flex-col px-[22px] overflow-hidden bg-background">
+      {/* 헤더 */}
+      <div className="min-h-[64px] flex items-center gap-3 pl-[64px] pr-4">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="뒤로"
+          className="w-10 h-10 rounded-lg bg-white border border-ink-200 grid place-items-center text-ink-700 active:scale-95 shadow-sm"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <h2 className="text-xl font-extrabold tracking-normal">편한 길</h2>
       </div>
 
-      <div className="route-body">
-        {/* 이동 수단 스위처 */}
-        <div className="route-mode-switcher">
-          {MODES.map((m) => (
-            <button
-              key={m.id}
-              className={`route-mode-btn ${mode === m.id ? 'active' : ''}`}
-              onClick={() => setMode(m.id)}
-            >
-              <span className="route-mode-emoji">{m.emoji}</span>
-              <span>{m.label}</span>
-            </button>
-          ))}
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-2">
+        <div className="bg-white border border-primary-100 rounded-xl p-4 mb-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary-50 text-primary grid place-items-center flex-shrink-0 border border-primary-100">
+              <Bus className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-extrabold text-ink-900">통합 이동 경로</div>
+              <div className="text-xs text-ink-500 font-semibold mt-1 leading-relaxed break-keep">
+                걷는 구간과 대중교통 연결을 나누어 고르지 않아도 되도록 한 번에 안내합니다.
+              </div>
+              <div className="flex gap-1.5 mt-3 overflow-x-auto no-scrollbar">
+                <MoveChip Icon={Footprints}>걷기</MoveChip>
+                <MoveChip Icon={Train}>지하철·버스</MoveChip>
+                <MoveChip Icon={Armchair}>중간 휴식</MoveChip>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* 대중교통: 카카오 외부 링크 유도 */}
-        {mode === 'transit' && origin?.lat && destination?.lat && (
-          <div className="route-transit-hint">
-            대중교통은 카카오맵 길찾기에서 자세히 보실 수 있어요.
-            <button
-              className="btn secondary small"
-              onClick={() =>
-                window.open(
-                  `https://map.kakao.com/?sX=${origin.lng}&sY=${origin.lat}&eX=${destination.lng}&eY=${destination.lat}&target=traffic`,
-                  '_blank',
-                  'noopener,noreferrer'
-                )
-              }
-            >
-              카카오맵에서 대중교통 열기
-            </button>
+        {!origin?.lat && (
+          <div className="bg-warning-50 border border-warning/30 rounded-xl p-4 mb-4">
+            <div className="text-sm font-extrabold text-ink-900">출발지를 확인하고 있어요</div>
+            <div className="text-xs text-ink-500 font-semibold mt-1 leading-relaxed break-keep">
+              {gpsError
+                ? '위치 권한이 꺼져 있으면 출발지를 직접 입력해 주세요.'
+                : 'GPS가 잡히면 자동으로 현재 위치에서 경로를 계산합니다. 급하면 출발지를 직접 입력할 수 있어요.'}
+            </div>
           </div>
         )}
 
-        {/* 경로 위에 커뮤니티 제보가 있을 때 경고 */}
+        {/* 경로 위 제보 경고 */}
         {nearbyReports.length > 0 && (
-          <div className="route-warning">
-            <div className="route-warning-icon">⚠️</div>
-            <div className="route-warning-body">
-              <div className="route-warning-title">
+          <div className="bg-warning-50 border border-warning/30 rounded-xl p-4 mb-4 flex items-center gap-3">
+            <AlertTriangle className="w-6 h-6 text-warning flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold text-ink-900">
                 이 경로에 제보 {nearbyReports.length}건이 있어요
               </div>
-              <div className="route-warning-list">
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
                 {nearbyReports.slice(0, 3).map((r) => {
                   const meta = REPORT_TYPES[r.type] || REPORT_TYPES.other
                   return (
-                    <span key={r.id} className="route-warning-chip">
+                    <span key={r.id} className="text-xs font-bold bg-white px-2 py-0.5 rounded-full">
                       {meta.emoji} {meta.label}
                     </span>
                   )
                 })}
               </div>
             </div>
-            <button
-              className="btn secondary small"
-              onClick={() => navigate('/community')}
-            >
+            <Button size="sm" variant="secondary" onClick={() => navigate('/community')}>
               상세
-            </button>
+            </Button>
           </div>
         )}
 
-        <div className="route-map" ref={mapRef}>
+        {/* 지도 */}
+        <div ref={mapRef} className="route-map h-[260px] bg-ink-50 rounded-xl overflow-hidden relative mb-4 border border-ink-200 shadow-sm">
           {!isMapReady && !mapError && (
-            <div className="route-map-fallback">🗺️ 지도를 불러오는 중…</div>
+            <div className="absolute inset-0 flex items-center justify-center text-sm text-ink-500 font-semibold">
+              🗺️ 지도를 불러오는 중…
+            </div>
           )}
           {isMapReady && (!route || isRouting) && (
-            <div className="route-map-fallback">🗺️ 편한 길을 그리고 있어요…</div>
+            <div className="absolute inset-0 flex items-center justify-center bg-white/80 text-sm text-ink-500 font-semibold">
+              🗺️ 편한 길을 그리고 있어요…
+            </div>
           )}
           {mapError && (
-            <div className="route-map-error">
-              <div className="route-map-error-title">🗺️ 지도를 불러올 수 없어요</div>
-              <div className="route-map-error-msg">{mapError}</div>
-              <ol className="route-map-error-list">
-                <li>카카오 콘솔 → <b>편한길 앱</b> → 앱 설정 → 플랫폼 → <b>Web 플랫폼</b></li>
-                <li>사이트 도메인에 <code>https://pyeonhangil.vercel.app</code> 추가</li>
-                <li>Vercel 환경변수 <code>VITE_KAKAO_JS_KEY</code> 확인 후 재배포</li>
-              </ol>
-              <button className="btn ghost" onClick={() => window.location.reload()}>다시 시도</button>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center bg-white">
+              <div className="text-base font-bold">🗺️ 지도를 불러올 수 없어요</div>
+              <div className="text-xs text-ink-500">{mapError}</div>
             </div>
           )}
         </div>
 
         {/* 경로 주변 시설 범례 */}
         {legend.length > 0 && (
-          <div className="route-legend">
-            <div className="route-legend-title">경로 주변 시설</div>
-            <div className="route-legend-chips no-scrollbar">
+          <div className="bg-white border border-ink-200 rounded-xl p-4 mb-4 shadow-sm">
+            <div className="text-[13px] font-bold text-ink-500 mb-2">경로 주변 시설</div>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
               {legend.map((l) => (
-                <div key={l.type} className="route-legend-chip">
+                <div key={l.type} className="flex items-center gap-1.5 bg-white border border-ink-200 px-2.5 py-1.5 rounded-full flex-shrink-0">
                   <span
-                    className="route-legend-dot"
-                    style={{ background: l.color }}
+                    className="w-5 h-5 rounded-full grid place-items-center text-[11px] flex-shrink-0"
+                    style={{ background: l.color + '22', color: l.color }}
                   >
                     {l.emoji}
                   </span>
-                  <span className="route-legend-lbl">{l.label}</span>
-                  <span className="route-legend-cnt">{l.count}</span>
+                  <span className="text-sm font-bold">{l.label}</span>
+                  <span className="text-xs text-ink-500 font-semibold">{l.count}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        <div className="route-path-box">
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <RouteSignal
+            Icon={ShieldCheck}
+            value={`${burdenScore}점`}
+            label="이동 가능성"
+            tone="primary"
+          />
+          <RouteSignal
+            Icon={Armchair}
+            value={`${restCount + toiletCount}곳`}
+            label="쉬어갈 곳"
+            tone="success"
+          />
+          <RouteSignal
+            Icon={Database}
+            value={`${routePois.length + nearbyReports.length}건`}
+            label="연결 정보"
+            tone="warning"
+          />
+        </div>
+
+        {/* 출발/도착 입력 */}
+        <div className="bg-white border border-ink-200 rounded-xl p-4 mb-4 relative shadow-sm">
           {/* 출발 */}
-          <div className="route-field">
-            <div className="route-dot start" />
-            <input
-              type="text"
-              className="route-input"
-              placeholder="출발 — 비우면 현재 위치"
-              value={originText}
-              onChange={(e) => {
-                setOriginText(e.target.value)
-                setOriginPick(null)
-              }}
-              onFocus={() => setActiveField('origin')}
-              onBlur={() => setTimeout(() => setActiveField(null), 200)}
-              enterKeyHint="search"
-            />
-            {(originText || originPick) && (
-              <button
-                type="button"
-                className="route-clear"
-                aria-label="출발 지우기"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  setOriginText('')
-                  setOriginPick(null)
-                  setOriginSug([])
-                }}
-              >✕</button>
-            )}
-            {activeField === 'origin' && originSug.length > 0 && (
-              <ul className="route-sug">
-                {originSug.map((s, i) => (
-                  <li
-                    key={`${s.name}-${s.lat}-${i}`}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      setOriginPick(s)
-                      setOriginText(s.name)
-                      setOriginSug([])
-                      setActiveField(null)
-                    }}
-                  >
-                    <b>{s.name}</b>
-                    {s.address && <span>{s.address}</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <div className="route-line" />
-
+          <RouteField
+            dot="bg-success"
+            placeholder="출발 — 비우면 현재 위치"
+            value={originText}
+            onChange={(v) => { setOriginText(v); setOriginPick(null) }}
+            onFocus={() => setActiveField('origin')}
+            onBlur={() => setTimeout(() => setActiveField(null), 200)}
+            onClear={() => { setOriginText(''); setOriginPick(null); setOriginSug([]) }}
+            suggestions={activeField === 'origin' ? originSug : []}
+            onPick={(s) => {
+              setOriginPick(s); setOriginText(s.name)
+              setOriginSug([]); setActiveField(null)
+            }}
+          />
+          <div className="ml-[7px] my-2 w-px h-4 bg-ink-300" />
           {/* 도착 */}
-          <div className="route-field">
-            <div className="route-dot end" />
-            <input
-              type="text"
-              className="route-input strong"
-              placeholder="도착지를 입력하세요"
-              value={destText}
-              onChange={(e) => {
-                setDestText(e.target.value)
-                setDestPick(null)
-              }}
-              onFocus={() => setActiveField('dest')}
-              onBlur={() => setTimeout(() => setActiveField(null), 200)}
-              enterKeyHint="search"
-            />
-            {destText && (
-              <button
-                type="button"
-                className="route-clear"
-                aria-label="도착 지우기"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  setDestText('')
-                  setDestPick(null)
-                  setDestSug([])
-                }}
-              >✕</button>
-            )}
-            {activeField === 'dest' && destSug.length > 0 && (
-              <ul className="route-sug">
-                {destSug.map((s, i) => (
-                  <li
-                    key={`${s.name}-${s.lat}-${i}`}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      setDestPick(s)
-                      setDestText(s.name)
-                      setDestSug([])
-                      setActiveField(null)
-                    }}
-                  >
-                    <b>{s.name}</b>
-                    {s.address && <span>{s.address}</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <RouteField
+            dot="bg-primary"
+            placeholder="도착지를 입력하세요"
+            value={destText}
+            strong
+            onChange={(v) => { setDestText(v); setDestPick(null) }}
+            onFocus={() => setActiveField('dest')}
+            onBlur={() => setTimeout(() => setActiveField(null), 200)}
+            onClear={() => { setDestText(''); setDestPick(null); setDestSug([]) }}
+            suggestions={activeField === 'dest' ? destSug : []}
+            onPick={(s) => {
+              setDestPick(s); setDestText(s.name)
+              setDestSug([]); setActiveField(null)
+            }}
+          />
           {destination?.address && destPick && (
-            <div className="route-point-addr">{destination.address}</div>
+            <div className="text-xs text-ink-500 ml-6 mt-1">{destination.address}</div>
           )}
         </div>
 
-        <div className="route-recommend">
-          <div className="route-badge">편하고 안전한 길</div>
-
-          <div className="route-time">
-            <span className="route-time-num">{minutes}</span>
-            <span className="route-time-unit">분</span>
+        {/* 추천 경로 카드 */}
+        <div className="bg-white border border-primary/20 rounded-xl p-5 mb-4 shadow-md">
+          <span className="inline-block text-[11px] font-extrabold text-primary bg-primary-50 px-2.5 py-1 rounded-full mb-2">
+            이동 부담 기준 추천
+          </span>
+          <div className="flex items-baseline gap-1 mb-1">
+            <span className="text-5xl font-extrabold tracking-tighter text-primary">{minutes}</span>
+            <span className="text-2xl font-bold text-primary">분</span>
             {distanceMeters > 0 && (
-              <span className="route-time-dist">· {formatDistance(distanceMeters)}</span>
+              <span className="ml-2 text-sm text-ink-500 font-bold">· {formatDistance(distanceMeters)}</span>
             )}
           </div>
-
-          <div className={`chip ${walk.color}`} style={{ alignSelf: 'flex-start', marginTop: 10 }}>
-            {walk.emoji} {walk.name} · 걸음 기준 맞춤
-          </div>
-
-          <div className="route-features">
-            <div className="route-feat">
-              <span className="route-check">✓</span>
-              <span>
-                {route?.source === 'tmap' && '실제 한국 보행자 도로 경로 (Tmap)'}
-                {route?.source === 'osrm-foot' && '실제 도보 경로 (OpenStreetMap 기반)'}
-                {route?.source === 'kakao-driving' && '큰길 기준 근사 경로'}
-                {(!route || route.source === 'straight' || route.source === 'client-straight') &&
-                  '직선 기준 예상 경로'}
-              </span>
-            </div>
-            <div className="route-feat">
-              <span className="route-check">✓</span>
-              <span>쉴 곳 {restCount}곳 · 화장실 {toiletCount}곳</span>
-            </div>
+          <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold mt-1', WALK_CHIP[walk.id])}>
+            {walk.emoji} {walk.name} · 교통약자 유형 맞춤
+          </span>
+          <div className="mt-4 space-y-2 text-sm">
+            <Feature>
+              {route?.source === 'tmap' && '걷는 구간은 실제 한국 보행자 도로를 기준으로 안내'}
+              {route?.source === 'osrm-foot' && '걷는 구간은 실제 보행 경로를 기준으로 안내'}
+              {route?.source === 'kakao-driving' && '큰길 기준으로 이동 흐름을 먼저 확인'}
+              {(!route || route.source === 'straight' || route.source === 'client-straight') && '현재 위치와 목적지를 기준으로 이동 흐름 예상'}
+            </Feature>
+            <Feature>도보와 대중교통을 한 흐름으로 보고 이동 부담이 낮은 길을 우선 안내</Feature>
+            <Feature>쉴 곳 {restCount}곳 · 화장실 {toiletCount}곳을 경로 위에서 확인</Feature>
             {(elevCount > 0 || rampCount > 0 || accessibleCount > 0) && (
-              <div className="route-feat">
-                <span className="route-check">✓</span>
-                <span>
-                  {[
-                    elevCount > 0 && `엘리베이터 ${elevCount}곳`,
-                    rampCount > 0 && `경사로 ${rampCount}곳`,
-                    accessibleCount > 0 && `장애인 편의시설 ${accessibleCount}곳`,
-                  ].filter(Boolean).join(' · ')}
-                </span>
-              </div>
+              <Feature>
+                {[
+                  elevCount > 0 && `엘리베이터 ${elevCount}곳`,
+                  rampCount > 0 && `경사로 ${rampCount}곳`,
+                  accessibleCount > 0 && `장애인 편의시설 ${accessibleCount}곳`,
+                ].filter(Boolean).join(' · ')}
+              </Feature>
             )}
-            <div className="route-feat">
-              <span className="route-check">✓</span>
-              <span>실시간 GPS로 안내</span>
-            </div>
+            <Feature>공공데이터와 사용자 제보를 함께 반영</Feature>
+            <Feature>실시간 GPS와 음성으로 안내</Feature>
           </div>
         </div>
       </div>
 
-      <div className="route-footer">
-        <button className="btn large" onClick={handleStart}>
+      <div className="pt-2 pb-6 flex-shrink-0">
+        <Button size="xl" className="w-full" onClick={handleStart}>
           이 길로 갈게요
-        </button>
+        </Button>
       </div>
 
-      {selectedPoi && (
-        <PoiDetailCard poi={selectedPoi} onClose={() => setSelectedPoi(null)} />
+      {selectedPoi && <PoiDetailCard poi={selectedPoi} onClose={() => setSelectedPoi(null)} />}
+    </div>
+  )
+}
+
+function Feature({ children }) {
+  return (
+    <div className="flex items-start gap-2 text-ink-700">
+      <Check className="w-5 h-5 text-success flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+      <span>{children}</span>
+    </div>
+  )
+}
+
+function MoveChip({ Icon, children }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-50 border border-ink-200 px-2.5 py-1 text-xs font-bold text-ink-700 flex-shrink-0">
+      <Icon className="w-3.5 h-3.5 text-primary" />
+      {children}
+    </span>
+  )
+}
+
+function RouteSignal({ Icon, value, label, tone }) {
+  const tones = {
+    primary: 'bg-primary-50 text-primary',
+    success: 'bg-success-50 text-success-600',
+    warning: 'bg-warning-50 text-warning',
+  }
+  return (
+    <div className="bg-white border border-ink-200 rounded-xl p-3 min-h-[92px] shadow-sm">
+      <div className={cn('w-9 h-9 rounded-lg grid place-items-center mb-2 border border-current/10', tones[tone])}>
+        <Icon className="w-[18px] h-[18px]" />
+      </div>
+      <div className="text-lg font-extrabold text-ink-900 leading-none">{value}</div>
+      <div className="text-[11px] font-bold text-ink-500 mt-1.5">{label}</div>
+    </div>
+  )
+}
+
+function RouteField({ dot, placeholder, value, strong, onChange, onFocus, onBlur, onClear, suggestions, onPick }) {
+  return (
+    <div className="relative">
+      <div className="flex items-center gap-3">
+        <div className={cn('w-[14px] h-[14px] rounded-full flex-shrink-0', dot)} />
+        <input
+          type="text"
+          className={cn(
+            'flex-1 min-h-[48px] px-3 bg-ink-50 rounded-lg text-base font-medium border border-ink-200 focus:outline-none focus:border-primary placeholder:text-ink-400',
+            strong && 'font-bold'
+          )}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          enterKeyHint="search"
+        />
+        {value && (
+          <button
+            type="button"
+            aria-label="지우기"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onClear}
+            className="absolute right-2.5 w-8 h-8 rounded-md grid place-items-center text-ink-400 hover:bg-ink-100"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+      {suggestions.length > 0 && (
+        <ul className="absolute z-30 left-7 right-0 top-[52px] bg-white border border-ink-200 rounded-xl shadow-lg overflow-hidden">
+          {suggestions.map((s, i) => (
+            <li
+              key={`${s.name}-${s.lat}-${i}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => onPick(s)}
+              className="flex flex-col px-4 py-3 hover:bg-primary-50 cursor-pointer border-b border-ink-50 last:border-b-0"
+            >
+              <b className="text-[15px] font-bold">{s.name}</b>
+              {s.address && <span className="text-xs text-ink-500 mt-0.5">{s.address}</span>}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )

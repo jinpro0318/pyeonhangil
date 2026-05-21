@@ -1,5 +1,9 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /**
  * 카카오 JavaScript 키는 "클라이언트 공개 키"로,
@@ -13,10 +17,34 @@ const KAKAO_JS_KEY_FALLBACK = 'df5e1dc0683b9992c2dd5aea25a9a6af'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const kakaoKey = env.VITE_KAKAO_JS_KEY || KAKAO_JS_KEY_FALLBACK
+  const kakaoKey = env.VITE_KAKAO_JS_KEY || env.KAKAO_JS_KEY || KAKAO_JS_KEY_FALLBACK
+
+  const localApiStatusPlugin = {
+    name: 'local-api-status',
+    configureServer(server) {
+      server.middlewares.use('/api/status', (req, res, next) => {
+        if (req.method !== 'GET') return next()
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify({
+          services: {
+            kakaoMaps: Boolean(env.VITE_KAKAO_JS_KEY || env.KAKAO_JS_KEY || kakaoKey),
+            kakaoRest: Boolean(env.KAKAO_REST_API_KEY || env.VITE_KAKAO_REST_API_KEY),
+            firebaseAuth: Boolean(env.VITE_FIREBASE_API_KEY && env.VITE_FIREBASE_AUTH_DOMAIN),
+            tmap: Boolean(env.TMAP_APP_KEY),
+            dataGoKr: Boolean(env.DATA_GO_KR_SERVICE_KEY),
+          },
+        }))
+      })
+    },
+  }
 
   return {
-    plugins: [react()],
+    plugins: [react(), localApiStatusPlugin],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+      },
+    },
     base: '/',
     define: {
       'import.meta.env.VITE_KAKAO_JS_KEY': JSON.stringify(kakaoKey),

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { Database, Mic, MapPin, Search, ShieldCheck, X } from 'lucide-react'
 import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useGPS } from '../hooks/useGPS'
 import { POI_TYPES } from '../data/pois'
@@ -7,11 +8,11 @@ import { fetchPois } from '../services/poiApi'
 import TabBar from '../components/TabBar'
 import SOSButton from '../components/SOSButton'
 import PoiDetailCard from '../components/PoiDetailCard'
-import './MapMain.css'
+import { Button } from '../components/ui/button'
+import { cn } from '@/lib/utils'
 
-const FILTERS = ['rest', 'toilet', 'elev', 'hospital', 'pharmacy', 'subway', 'cross']
+const FILTERS = ['rest', 'toilet', 'elev', 'cross', 'hospital', 'pharmacy', 'subway', 'public']
 
-// 50m 이상 이동했을 때만 다시 fetch
 function quantize(p, precision = 3) {
   if (!p) return null
   return { lat: Number(p.lat.toFixed(precision)), lng: Number(p.lng.toFixed(precision)) }
@@ -29,11 +30,8 @@ export default function MapMain() {
 
   const { position, start, isTracking } = useGPS({ enableStayDetection: false })
 
-  useEffect(() => {
-    start()
-  }, [start])
+  useEffect(() => { start() }, [start])
 
-  // 필터 또는 (대략적) 위치 변경 시에만 POI 재조회
   const fetchKey = useMemo(
     () => `${activeFilter || 'all'}|${JSON.stringify(quantize(position))}`,
     [activeFilter, position]
@@ -44,15 +42,9 @@ export default function MapMain() {
     setLoading(true)
     const types = activeFilter ? [activeFilter] : FILTERS
     fetchPois({ center: position, types, radius: 1500 })
-      .then((list) => {
-        if (!cancelled) setPois(list)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
+      .then((list) => { if (!cancelled) setPois(list) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [fetchKey])
 
   const { isReady, error, setCenter } = useKakaoMap(mapRef, {
@@ -66,79 +58,113 @@ export default function MapMain() {
     if (position) setCenter(position.lat, position.lng)
   }
 
-  const handleRetry = () => window.location.reload()
-
   return (
     <>
-      <div className="map-page">
-        <div className="map-container" ref={mapRef}>
+      <div className="flex-1 relative overflow-hidden flex flex-col">
+        <div ref={mapRef} className="map-container absolute inset-0 bg-ink-50 touch-none">
           {!isReady && !error && (
-            <div className="map-loading">
-              <div className="map-loading-spinner" />
-              <div>지도를 불러오는 중...</div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-ink-500 text-sm font-semibold">
+              <div className="w-9 h-9 border-4 border-ink-200 border-t-primary rounded-full animate-spin" />
+              지도를 불러오는 중...
             </div>
           )}
           {error && (
-            <div className="map-error">
-              <div className="map-error-icon">🗺️</div>
-              <div className="map-error-title">지도를 불러올 수 없어요</div>
-              <div className="map-error-msg">{error}</div>
-              <div className="map-error-help">
-                <div className="map-error-help-title">해결 방법</div>
-                <ol className="map-error-help-list">
-                  <li>Vercel 환경변수 <code>VITE_KAKAO_JS_KEY</code> 등록</li>
-                  <li>카카오 콘솔 → 앱 설정 → 플랫폼 → Web 에 도메인 등록 (<code>{typeof window !== 'undefined' ? window.location.origin : ''}</code>)</li>
-                </ol>
-              </div>
-              <button className="btn" onClick={handleRetry} style={{ marginTop: 12 }}>다시 시도</button>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center bg-white">
+              <div className="text-4xl">🗺️</div>
+              <div className="text-lg font-extrabold">지도를 불러올 수 없어요</div>
+              <div className="text-sm text-ink-500">{error}</div>
+              <Button onClick={() => window.location.reload()} className="mt-2">
+                다시 시도
+              </Button>
             </div>
           )}
         </div>
 
-        <div className="map-search-bar">
+        {/* 검색바 */}
+        <div className="absolute top-3.5 left-14 right-3.5 bg-white rounded-xl p-2 pl-3 flex items-center gap-2.5 shadow-md border border-ink-200 z-20">
           <button
-            className="map-search-input"
             onClick={() => navigate('/search?mode=text')}
-            aria-label="장소 검색"
+            className="flex-1 flex items-center gap-2.5 py-2.5 text-[15px] text-ink-500 font-semibold text-left"
           >
-            <span className="map-search-icon">🔍</span>
+            <Search className="w-[18px] h-[18px]" />
             <span>어디를 찾으세요?</span>
           </button>
           <button
-            className="map-voice-btn"
             onClick={() => navigate('/search?mode=voice')}
             aria-label="음성으로 검색"
-          >🎙</button>
+            className="w-10 h-10 bg-primary text-white rounded-lg grid place-items-center active:scale-95 shadow-primary"
+          >
+            <Mic className="w-[18px] h-[18px]" />
+          </button>
         </div>
 
+        <div className="absolute top-[76px] left-3.5 right-3.5 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-md border border-ink-200 z-20">
+          <div className="flex items-start gap-2.5">
+            <div className="w-9 h-9 rounded-lg bg-primary-50 text-primary grid place-items-center flex-shrink-0 border border-primary-100">
+              <Database className="w-[18px] h-[18px]" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[13px] font-extrabold text-ink-900">
+                공공데이터와 제보를 한 지도에서 확인
+              </div>
+              <div className="text-[11px] font-semibold text-ink-500 mt-0.5 break-keep">
+                쉼터, 화장실, 엘리베이터, 횡단보도 정보를 근처 기준으로 모아 보여줍니다.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 내 위치 버튼 */}
         {isReady && (
           <button
-            className="map-recenter-btn"
             onClick={handleRecenter}
             aria-label="내 위치로 이동"
-          >📍</button>
+            className="absolute right-3.5 bottom-[210px] w-12 h-12 bg-white rounded-xl shadow-md border border-ink-200 z-20 grid place-items-center active:scale-95"
+          >
+            <MapPin className="w-[22px] h-[22px] text-primary" />
+          </button>
         )}
 
-        <div className="map-filter">
-          <div className="map-filter-title">
-            무엇을 찾으세요?
-            {loading && <span className="map-loading-pill">불러오는 중...</span>}
-            {!loading && pois.length > 0 && (
-              <span className="map-loading-pill">{pois.length}곳 찾음</span>
-            )}
+        {/* 필터 카드 */}
+        <div className="absolute bottom-3.5 left-3.5 right-3.5 bg-white rounded-xl p-4 shadow-lg border border-ink-200 z-20">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="text-[13px] font-bold text-ink-700 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-success-600" />
+              {activeFilter ? POI_TYPES[activeFilter]?.label + '만 보기' : '이동 편의시설 찾기'}
+            </div>
+            {loading ? (
+              <Pill>불러오는 중...</Pill>
+            ) : pois.length > 0 ? (
+              <Pill>{pois.length}곳 찾음</Pill>
+            ) : activeFilter ? (
+              <Pill tone="warning">근처에 없어요</Pill>
+            ) : null}
           </div>
-          <div className="map-filter-btns">
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4">
+            {activeFilter && (
+              <button
+                onClick={() => setActiveFilter(null)}
+                className="px-3 py-2.5 bg-primary text-white rounded-lg flex flex-col items-center gap-0.5 text-[11px] font-bold flex-shrink-0 min-w-[64px] active:scale-95"
+              >
+                <X className="w-[18px] h-[18px]" />
+                <span>전체</span>
+              </button>
+            )}
             {FILTERS.map((t) => {
               const type = POI_TYPES[t]
+              if (!type) return null
               const active = activeFilter === t
               return (
                 <button
                   key={t}
-                  className={`map-filter-btn ${active ? 'active' : ''}`}
-                  style={active ? { background: type.color, color: 'white' } : {}}
                   onClick={() => setActiveFilter(active ? null : t)}
+                  className={cn(
+                    'px-3 py-2.5 rounded-lg flex flex-col items-center gap-0.5 text-[11px] font-bold flex-shrink-0 min-w-[64px] transition-all active:scale-95 border',
+                    active ? 'text-white border-transparent shadow-sm' : 'bg-white border-ink-200 text-ink-700 hover:bg-ink-50'
+                  )}
+                  style={active ? { background: type.color } : {}}
                 >
-                  <span className="map-filter-emoji">{type.emoji}</span>
+                  <span className="text-lg">{type.emoji}</span>
                   <span>{type.label}</span>
                 </button>
               )
@@ -150,9 +176,21 @@ export default function MapMain() {
           <PoiDetailCard poi={selectedPoi} onClose={() => setSelectedPoi(null)} />
         )}
 
-        <SOSButton bottom={260} />
+        <SOSButton bottom={250} />
       </div>
       <TabBar />
     </>
+  )
+}
+
+function Pill({ children, tone = 'primary' }) {
+  const tones = {
+    primary: 'bg-primary-50 text-primary-700',
+    warning: 'bg-warning-50 text-warning',
+  }
+  return (
+    <span className={cn('text-[11px] font-bold px-2 py-0.5 rounded-full', tones[tone])}>
+      {children}
+    </span>
   )
 }

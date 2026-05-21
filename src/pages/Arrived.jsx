@@ -1,8 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { CheckCircle2, MapPin, Bell, AlertTriangle } from 'lucide-react'
 import { useVoice } from '../hooks/useVoice'
 import { useAppState } from '../hooks/useAppState'
-import './Arrived.css'
+import { endTrip, getActiveTrip } from '../services/tripStore'
+import { formatDistance } from '../utils/geo'
+import { Button } from '../components/ui/button'
 
 export default function Arrived() {
   const navigate = useNavigate()
@@ -10,62 +13,98 @@ export default function Arrived() {
   const { state } = useAppState()
   const destination = state.destination?.name || '목적지'
 
+  const finished = useMemo(() => {
+    const active = getActiveTrip()
+    if (!active) return null
+    const distance = state.activeRoute?.distanceMeters || active.distance || 0
+    return endTrip(distance)
+    // eslint-disable-next-line
+  }, [])
+
+  const durationMin = finished?.startTs && finished?.endTs
+    ? Math.max(1, Math.round((finished.endTs - finished.startTs) / 60000))
+    : null
+
+  const distance = finished?.distance || state.activeRoute?.distanceMeters || 0
+  const primaryFamily = state.family.find((f) => f.status === 'connected' && f.receiveSOS)
+
   useEffect(() => {
-    speak('도착했어요. 수고 많으셨어요. 가족에게도 자동으로 알려드렸어요')
-  }, [speak])
+    if (primaryFamily) {
+      speak(`도착했어요. 수고 많으셨어요. ${primaryFamily.name}님에게도 자동으로 알려드렸어요`, {
+        onceKey: `arrived:${destination}:${primaryFamily.id || primaryFamily.name}`,
+      })
+    } else {
+      speak('도착했어요. 수고 많으셨어요', {
+        onceKey: `arrived:${destination}`,
+      })
+    }
+  }, [speak, primaryFamily, destination])
 
   return (
-    <div className="arrived-page">
-      <div className="arrived-gps">
-        <div className="gps-indicator">
-          <div className="gps-dot"></div>
-          📍 GPS로 도착 자동 감지
-        </div>
+    <div className="flex-1 flex flex-col items-center px-6 pt-12 pb-6 bg-gradient-to-b from-primary-50 to-white">
+      <div className="gps-indicator mb-6">
+        <div className="gps-dot" />
+        <MapPin className="w-3 h-3" /> GPS로 도착 자동 감지
       </div>
 
-      <div className="arrived-icon-wrap">
-        <div className="arrived-check">✓</div>
+      {/* 큰 체크 애니메이션 */}
+      <div className="w-28 h-28 rounded-full bg-primary grid place-items-center mb-5 shadow-primary animate-check-pop">
+        <CheckCircle2 className="w-16 h-16 text-white" strokeWidth={2} />
       </div>
 
-      <div className="arrived-title">도착했어요!</div>
-      <div className="arrived-dest">{destination}</div>
+      <div className="text-3xl font-extrabold tracking-tighter text-ink-900 mb-2">도착했어요!</div>
+      <div className="text-base text-ink-500 font-semibold mb-7">{destination}</div>
 
-      <div className="arrived-stats">
-        <div className="arrived-label">수고 많으셨어요</div>
-        <div className="arrived-stats-row">
-          <div className="arrived-stat">
-            <div className="arrived-stat-num" style={{ color: 'var(--primary)' }}>
-              18분
+      <div className="w-full bg-white rounded-3xl p-5 shadow-sm mb-4">
+        <div className="text-xs font-bold text-ink-500 text-center mb-3">수고 많으셨어요</div>
+        <div className="flex">
+          <div className="flex-1 text-center">
+            <div className="text-3xl font-extrabold tracking-tighter text-primary">
+              {durationMin != null ? `${durationMin}분` : '—'}
             </div>
-            <div className="arrived-stat-lbl">소요</div>
+            <div className="text-xs text-ink-500 mt-0.5">소요</div>
           </div>
-          <div className="arrived-stat">
-            <div className="arrived-stat-num" style={{ color: 'var(--cat-rest)' }}>
-              2번
+          <div className="w-px bg-ink-100" />
+          <div className="flex-1 text-center">
+            <div className="text-3xl font-extrabold tracking-tighter text-success-600">
+              {distance ? formatDistance(distance) : '—'}
             </div>
-            <div className="arrived-stat-lbl">쉬었어요</div>
+            <div className="text-xs text-ink-500 mt-0.5">걸으셨어요</div>
           </div>
         </div>
       </div>
 
-      <div className="arrived-family">
-        <span className="arrived-family-check">✓</span>
-        <div>
-          <div className="arrived-family-title">가족에게 자동으로 알렸어요</div>
-          <div className="arrived-family-desc">"무사히 도착하셨어요"</div>
+      {primaryFamily ? (
+        <div className="w-full bg-success-50 rounded-2xl p-4 flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-full bg-success text-white grid place-items-center flex-shrink-0">
+            <Bell className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-[15px] font-bold text-ink-900">
+              {primaryFamily.name}님에게 자동으로 알렸어요
+            </div>
+            <div className="text-sm text-ink-500 mt-0.5">"무사히 도착하셨어요"</div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="w-full bg-ink-50 rounded-2xl p-4 flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-full bg-ink-400 text-white grid place-items-center flex-shrink-0">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-[15px] font-bold text-ink-900">가족 알림이 꺼져 있어요</div>
+            <div className="text-sm text-ink-500 mt-0.5">가족 탭에서 SOS 알림을 켜주세요</div>
+          </div>
+        </div>
+      )}
 
-      <div className="arrived-footer">
-        <button className="btn secondary" onClick={() => navigate('/home')}>
+      <div className="w-full grid grid-cols-2 gap-3 mt-auto">
+        <Button variant="secondary" onClick={() => navigate('/home')}>
           홈으로
-        </button>
-        <button
-          className="btn large"
-          onClick={() => navigate('/search?mode=voice')}
-        >
+        </Button>
+        <Button size="lg" onClick={() => navigate('/search?mode=voice')}>
           돌아가는 길도 편하게
-        </button>
+        </Button>
       </div>
     </div>
   )

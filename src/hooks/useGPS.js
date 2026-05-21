@@ -23,6 +23,7 @@ export function useGPS(options = {}) {
   const [stayDuration, setStayDuration] = useState(0) // 초
   const [error, setError] = useState(null)
   const [isTracking, setIsTracking] = useState(false)
+  const [hasPosition, setHasPosition] = useState(false)
 
   const watchIdRef = useRef(null)
   const historyRef = useRef([]) // { lat, lng, ts } 최근 이력
@@ -51,6 +52,7 @@ export function useGPS(options = {}) {
         if (historyRef.current.length > 10) historyRef.current.shift()
 
         setPosition({ lat: next.lat, lng: next.lng })
+        setHasPosition(true)
 
         // 속도 계산 (최근 3개 좌표 평균)
         const hist = historyRef.current
@@ -113,6 +115,7 @@ export function useGPS(options = {}) {
       stayTimerRef.current = null
     }
     setIsTracking(false)
+    setHasPosition(false)
     stayStartRef.current = null
     setStayDuration(0)
     setIsStaying(false)
@@ -131,6 +134,7 @@ export function useGPS(options = {}) {
     stayDuration,
     error,
     isTracking,
+    hasPosition,
     start,
     stop,
   }

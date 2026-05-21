@@ -1,78 +1,243 @@
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Check, Clock, LifeBuoy, Link as LinkIcon, X as XIcon, UserPlus } from 'lucide-react'
+import { useAppState } from '../hooks/useAppState'
 import TabBar from '../components/TabBar'
-import './Family.css'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { cn } from '@/lib/utils'
+
+const RELATIONS = ['딸', '아들', '배우자', '형제', '자매', '친구', '기타']
+
+function makeInviteLink(token) {
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://pyeonhangil.app'
+  return `${origin}/?invite=${token}`
+}
+
+function makeToken() {
+  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4)
+}
+
+function formatAge(ts) {
+  if (!ts) return ''
+  const diff = Date.now() - ts
+  const day = Math.floor(diff / 86400000)
+  if (day === 0) return '오늘'
+  if (day === 1) return '어제'
+  return `${day}일 전`
+}
 
 export default function Family() {
-  const navigate = useNavigate()
+  const { state, addFamily, updateFamily, removeFamily } = useAppState()
+  const [showInvite, setShowInvite] = useState(false)
+  const [draft, setDraft] = useState({ name: '', relation: '딸' })
+  const [lastLink, setLastLink] = useState(null)
 
   const handleInvite = () => {
-    const name = prompt('초대할 가족의 이름을 입력하세요')
-    if (name) {
-      alert(`${name}님에게 초대 링크를 보냈어요`)
+    const name = draft.name.trim()
+    if (!name) { alert('이름을 입력해주세요'); return }
+    const token = makeToken()
+    addFamily({
+      name, relation: draft.relation,
+      status: 'pending', inviteToken: token, invitedAt: Date.now(),
+    })
+    setLastLink({ name, link: makeInviteLink(token) })
+    setDraft({ name: '', relation: '딸' })
+    setShowInvite(false)
+  }
+
+  const copyLink = async (link) => {
+    try {
+      await navigator.clipboard.writeText(link)
+      alert('초대 링크를 복사했어요. 가족에게 보내주세요')
+    } catch {
+      prompt('링크를 복사해서 가족에게 보내주세요', link)
     }
   }
 
+  const handleRemove = (id, name) => {
+    if (confirm(`${name}님을 가족에서 삭제할까요?`)) removeFamily(id)
+  }
+  const toggleSOS = (id, current) => updateFamily(id, { receiveSOS: !current })
+
+  const family = state.family
+
   return (
     <>
-      <div className="family-page">
-        <div className="family-header">
-          <h2>우리 가족</h2>
+      <div className="flex-1 flex flex-col overflow-hidden bg-background">
+        <div className="min-h-[64px] pl-[64px] pr-[22px] flex items-center">
+          <h2 className="text-2xl font-extrabold tracking-normal">우리 가족</h2>
         </div>
 
-        <div className="family-body no-scrollbar">
-          <div className="family-banner">
-            <div className="family-banner-icon">✓</div>
+        <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-6 space-y-3">
+          <div className="bg-white border border-primary-100 text-ink-900 rounded-xl p-5 flex gap-3.5 items-center shadow-sm">
+            <div className="w-[52px] h-[52px] bg-primary-50 text-primary rounded-lg grid place-items-center flex-shrink-0 border border-primary-100">
+              <Check className="w-7 h-7" strokeWidth={3} />
+            </div>
             <div>
-              <div className="family-banner-label">걱정 마세요</div>
-              <div className="family-banner-title">
-                딸에게 자동으로 알려드려요
+              <div className="text-sm text-primary font-semibold">안심 공유</div>
+              <div className="text-[17px] font-extrabold mt-0.5">
+                연결된 가족에게 자동으로 알려드려요
               </div>
             </div>
           </div>
 
-          <div className="list-label">내 가족</div>
-
-          <div className="action-card">
-            <div
-              className="action-card-icon"
-              style={{ background: 'var(--cat-rest-soft)', color: 'var(--cat-rest)' }}
-            >
-              영
-            </div>
-            <div className="action-card-text">
-              <div className="t">딸 영수</div>
-              <div className="s" style={{ color: 'var(--cat-rest)', fontWeight: 700 }}>
-                ✓ 연결됨 · 모든 알림 받음
+          {lastLink && (
+            <div className="bg-white border border-primary-100 rounded-xl p-4 shadow-sm">
+              <div className="text-[15px] font-bold text-primary-700 mb-2">
+                📨 {lastLink.name}님께 보낼 링크
+              </div>
+              <div className="bg-ink-50 border border-ink-200 p-2.5 rounded-lg text-[13px] break-all text-ink-700 font-mono mb-3">
+                {lastLink.link}
+              </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-2">
+                <Button variant="secondary" onClick={() => setLastLink(null)}>닫기</Button>
+                <Button onClick={() => copyLink(lastLink.link)}>
+                  <LinkIcon className="w-4 h-4" /> 링크 복사
+                </Button>
               </div>
             </div>
+          )}
+
+          {showInvite && (
+            <div className="bg-white border border-ink-200 rounded-xl p-4 space-y-3 shadow-sm">
+              <div>
+                <div className="text-sm font-bold text-ink-700 mb-2">이름</div>
+                <Input
+                  placeholder="예: 김민수"
+                  value={draft.name}
+                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-ink-700 mb-2">관계</div>
+                <div className="flex flex-wrap gap-2">
+                  {RELATIONS.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setDraft({ ...draft, relation: r })}
+                      className={cn(
+                        'px-3.5 py-2.5 rounded-full text-sm font-bold border min-h-[40px]',
+                        draft.relation === r
+                          ? 'bg-primary-50 border-primary text-primary-700'
+                          : 'bg-white border-ink-200 text-ink-700'
+                      )}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-2 pt-1">
+                <Button
+                  variant="secondary"
+                  onClick={() => { setShowInvite(false); setDraft({ name: '', relation: '딸' }) }}
+                >
+                  취소
+                </Button>
+                <Button onClick={handleInvite}>
+                  <UserPlus className="w-4 h-4" /> 초대 링크 만들기
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="text-[13px] font-bold text-ink-500 mt-3 px-1">
+            내 가족 ({family.length}명)
           </div>
 
-          <div
-            className="action-card"
-            style={{
-              background: 'var(--walk-yellow-soft)',
-            }}
-          >
-            <div
-              className="action-card-icon"
-              style={{ background: 'white', color: 'var(--walk-yellow)' }}
-            >
-              아
+          {family.length === 0 && (
+            <div className="py-10 flex flex-col items-center text-center text-ink-500">
+              <div className="text-5xl mb-2 opacity-60">👨‍👩‍👧</div>
+              <div className="text-[17px] font-bold text-ink-700 mb-1">아직 연결된 가족이 없어요</div>
+              <div className="text-sm leading-relaxed">
+                가족을 초대하면 외출·도착·SOS 때<br />자동으로 알림이 가요
+              </div>
             </div>
-            <div className="action-card-text">
-              <div className="t">아들 민수</div>
+          )}
+
+          {family.map((f) => {
+            const connected = f.status === 'connected'
+            return (
               <div
-                className="s"
-                style={{ color: 'var(--walk-yellow)', fontWeight: 700 }}
+                key={f.id}
+                className={cn(
+                  'flex items-center gap-3 p-4 rounded-xl min-h-[76px] border shadow-sm',
+                  connected ? 'bg-white border-ink-200' : 'bg-warning-50 border-warning/20'
+                )}
               >
-                ⏳ 초대 대기 · 3일 전 전송
+                <div
+                  className={cn(
+                    'w-11 h-11 rounded-lg grid place-items-center font-bold flex-shrink-0 border border-current/10',
+                    connected ? 'bg-success-50 text-success-600' : 'bg-white text-warning'
+                  )}
+                >
+                  {f.name[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[17px] font-bold truncate">
+                    {f.relation ? `${f.relation} ${f.name}` : f.name}
+                  </div>
+                  <div
+                    className={cn(
+                      'text-sm font-bold mt-0.5 flex items-center gap-1',
+                      connected ? 'text-success-600' : 'text-warning'
+                    )}
+                  >
+                    {connected ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" /> 연결됨 · {f.receiveSOS ? '모든 알림' : 'SOS 끔'}
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="w-3.5 h-3.5" /> 초대 대기 · {formatAge(f.invitedAt)}
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+                  {connected && (
+                    <button
+                      onClick={() => toggleSOS(f.id, f.receiveSOS)}
+                      aria-label="SOS 알림 토글"
+                      className={cn(
+                        'w-9 h-9 rounded-lg grid place-items-center',
+                        f.receiveSOS ? 'bg-danger-50 text-danger' : 'opacity-40'
+                      )}
+                    >
+                      <LifeBuoy className="w-4 h-4" />
+                    </button>
+                  )}
+                  {!connected && f.inviteToken && (
+                    <button
+                      onClick={() => copyLink(makeInviteLink(f.inviteToken))}
+                      aria-label="링크 다시 보내기"
+                      className="w-9 h-9 rounded-lg grid place-items-center text-primary hover:bg-primary-50"
+                    >
+                      <LinkIcon className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleRemove(f.id, f.name)}
+                    aria-label="가족 삭제"
+                    className="w-9 h-9 rounded-lg grid place-items-center text-ink-400 hover:bg-ink-200 hover:text-danger"
+                  >
+                    <XIcon className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
+            )
+          })}
 
-          <button className="btn secondary large" onClick={handleInvite}>
-            + 가족 더 초대하기
-          </button>
+          {!showInvite && (
+            <Button
+              variant="secondary"
+              size="lg"
+              className="w-full mt-3"
+              onClick={() => setShowInvite(true)}
+            >
+              <UserPlus className="w-5 h-5" /> 가족 초대하기
+            </Button>
+          )}
         </div>
       </div>
       <TabBar />

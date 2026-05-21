@@ -1,12 +1,22 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Check, MapPin } from 'lucide-react'
 import { useAppState, WALK_STATES } from '../hooks/useAppState'
-import './WalkState.css'
+import { Button } from '../components/ui/button'
+import { cn } from '@/lib/utils'
+
+const WALK_BG = {
+  older: 'bg-success-50 border-success/40',
+  wheelchair: 'bg-primary-50 border-primary/30',
+  visual: 'bg-warning-50 border-warning/40',
+  stroller: 'bg-walk-stroller-soft border-walk-stroller/40',
+  injured: 'bg-danger-50 border-danger/30',
+}
 
 export default function WalkState() {
   const navigate = useNavigate()
   const { state, updateUser } = useAppState()
-  const [selected, setSelected] = useState(state.user.walkState || 'slow')
+  const [selected, setSelected] = useState(WALK_STATES[state.user.walkState]?.id || 'older')
 
   const handleComplete = () => {
     updateUser({ walkState: selected })
@@ -14,48 +24,54 @@ export default function WalkState() {
   }
 
   return (
-    <div className="walk-page">
-      <div className="walk-header">
-        <div className="walk-tag">마지막 단계</div>
-        <h1 className="walk-title">
-          어떤 걸음이<br />가장 편하세요?
+    <div className="flex-1 flex flex-col px-6 pt-10 pb-6 bg-background">
+      <div className="pl-[64px] mb-6">
+        <div className="app-chip mb-3">
+          마지막 단계
+        </div>
+        <h1 className="text-3xl font-extrabold tracking-normal mb-2">
+          어떤 이동 지원이<br />필요하신가요?
         </h1>
-        <p className="walk-sub">
-          선택하시면 걸음에 맞춰<br />길을 찾아드려요
+        <p className="text-base text-ink-500 font-semibold leading-relaxed">
+          교통약자 유형에 맞춰<br />길과 편의시설을 우선 안내해요
         </p>
       </div>
 
-      <div className="walk-options">
-        {Object.values(WALK_STATES).map((opt) => (
-          <button
-            key={opt.id}
-            className={`walk-option ${selected === opt.id ? 'selected' : ''}`}
-            onClick={() => setSelected(opt.id)}
-          >
-            <div
-              className="walk-option-icon"
-              style={{ background: `var(--${opt.color}-soft)` }}
+      <div className="space-y-3 flex-1">
+        {Object.values(WALK_STATES).map((opt) => {
+          const sel = selected === opt.id
+          return (
+            <button
+              key={opt.id}
+              onClick={() => setSelected(opt.id)}
+              className={cn(
+                'w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left active:scale-[0.99] shadow-sm',
+                sel ? WALK_BG[opt.id] : 'bg-white border-ink-200'
+              )}
             >
-              {opt.emoji}
-            </div>
-            <div className="walk-option-text">
-              <div className="walk-option-t">{opt.name}</div>
-              <div className="walk-option-s">{opt.desc}</div>
-            </div>
-            <div className="walk-check">
-              {selected === opt.id ? '✓' : ''}
-            </div>
-          </button>
-        ))}
+              <div className="w-14 h-14 rounded-lg bg-white grid place-items-center text-3xl flex-shrink-0 border border-ink-200">
+                {opt.emoji}
+              </div>
+              <div className="flex-1">
+                <div className="text-[17px] font-bold">{opt.name}</div>
+                <div className="text-sm text-ink-500 mt-0.5">{opt.desc}</div>
+              </div>
+              <div className={cn('w-7 h-7 rounded-full grid place-items-center flex-shrink-0', sel ? 'bg-primary text-white' : 'bg-ink-200/0')}>
+                {sel && <Check className="w-4 h-4" strokeWidth={3} />}
+              </div>
+            </button>
+          )
+        })}
       </div>
 
-      <div className="walk-note">
-        📍 실제 걸음 속도는 <strong>GPS가 자동으로 측정</strong>해서 더 정확히 맞춰드려요
+      <div className="p-3.5 bg-white border border-primary-100 rounded-xl text-sm text-primary-700 font-semibold mt-5 mb-4 leading-relaxed flex items-start gap-2 shadow-sm">
+        <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <span>선택한 유형에 따라 <strong>엘리베이터·쉼터·횡단보도</strong> 우선순위가 달라져요</span>
       </div>
 
-      <button className="btn large" onClick={handleComplete}>
+      <Button size="xl" className="w-full" onClick={handleComplete}>
         시작하기
-      </button>
+      </Button>
     </div>
   )
 }

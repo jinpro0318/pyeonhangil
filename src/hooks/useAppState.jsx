@@ -1,17 +1,37 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 const AppContext = createContext(null)
 
 const STORAGE_KEY = 'pyeonhangil_state'
 
+export const FONT_SIZES = {
+  sm: { id: 'sm', label: '작게', scale: 0.9 },
+  md: { id: 'md', label: '보통', scale: 1.0 },
+  lg: { id: 'lg', label: '크게', scale: 1.15 },
+  xl: { id: 'xl', label: '아주 크게', scale: 1.3 },
+}
+
 const defaultState = {
   user: {
     name: '사용자',
-    walkState: 'slow', // slow | very-slow | needs-help | stroller
+    walkState: 'older',
+    fontSize: 'md',
   },
   destination: null,
-  activeRoute: null, // { coords:[{lat,lng}], distanceMeters, durationSeconds, source }
-  family: [],
+  activeRoute: null,
+  family: [
+    {
+      id: 'fam_seed_1',
+      name: '딸 영수',
+      relation: '딸',
+      phone: '',
+      status: 'connected',
+      invitedAt: null,
+      connectedAt: Date.now(),
+      receiveSOS: true,
+    },
+  ],
+  emergencyContacts: [],
   favorites: [
     { id: 'home', name: '우리 집', emoji: '🏠', address: '서울 종로구 종로 12', lat: 37.5704, lng: 126.9927 },
     { id: 'hospital', name: '서울대학교병원', emoji: '🏥', address: '서울 종로구 대학로 101', lat: 37.579617, lng: 126.998292 },
@@ -20,38 +40,73 @@ const defaultState = {
 }
 
 export const WALK_STATES = {
-  slow: {
-    id: 'slow',
-    emoji: '🟢',
-    name: '조금 느려요',
-    desc: '천천히 걷지만 혼자 다녀요',
-    speed: '0.7~0.9m/초',
-    color: 'walk-green',
+  older: {
+    id: 'older',
+    emoji: '👵',
+    name: '고령자',
+    desc: '계단·경사·긴 보행을 줄여 안내해요',
+    speed: '0.6~0.8m/초',
+    color: 'older',
   },
-  'very-slow': {
-    id: 'very-slow',
-    emoji: '🟡',
-    name: '많이 느려요',
-    desc: '지팡이·자주 쉼 필요',
+  wheelchair: {
+    id: 'wheelchair',
+    emoji: '♿',
+    name: '휠체어·보행기',
+    desc: '엘리베이터·경사로·넓은 길을 우선해요',
+    speed: '0.4~0.6m/초',
+    color: 'wheelchair',
+  },
+  visual: {
+    id: 'visual',
+    emoji: '🦯',
+    name: '시각장애인',
+    desc: '횡단보도·안전한 보행 안내를 강화해요',
     speed: '0.5~0.7m/초',
-    color: 'walk-yellow',
-  },
-  'needs-help': {
-    id: 'needs-help',
-    emoji: '🔴',
-    name: '도움이 필요해요',
-    desc: '휠체어·보행기·시각장애',
-    speed: '0.4m/초 이하',
-    color: 'walk-red',
+    color: 'visual',
   },
   stroller: {
     id: 'stroller',
     emoji: '👶',
-    name: '유모차예요',
-    desc: '아이와 함께 다녀요',
+    name: '유모차 동반',
+    desc: '엘리베이터와 턱이 적은 길을 우선해요',
     speed: '0.6~0.8m/초',
-    color: 'walk-stroller',
+    color: 'stroller',
   },
+  injured: {
+    id: 'injured',
+    emoji: '🩼',
+    name: '일시적 부상자',
+    desc: '짧은 보행과 쉴 곳을 우선해요',
+    speed: '0.5~0.7m/초',
+    color: 'injured',
+  },
+}
+
+function migrate(parsed) {
+  const user = { ...defaultState.user, ...(parsed.user || {}) }
+  if (!FONT_SIZES[user.fontSize]) user.fontSize = 'md'
+  if (!WALK_STATES[user.walkState]) user.walkState = defaultState.user.walkState
+
+  const favorites = Array.isArray(parsed.favorites) && parsed.favorites.every((f) => f.lat && f.lng)
+    ? parsed.favorites
+    : defaultState.favorites
+
+  const family = Array.isArray(parsed.family) && parsed.family.length > 0
+    ? parsed.family
+    : defaultState.family
+
+  const emergencyContacts = Array.isArray(parsed.emergencyContacts)
+    ? parsed.emergencyContacts
+    : defaultState.emergencyContacts
+
+  return {
+    ...defaultState,
+    ...parsed,
+    user,
+    favorites,
+    family,
+    emergencyContacts,
+  }
 }
 
 export function AppProvider({ children }) {
@@ -59,12 +114,7 @@ export function AppProvider({ children }) {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
       if (!saved) return defaultState
-      const parsed = JSON.parse(saved)
-      // 즐겨찾기에 좌표가 없는 이전 버전 → 기본값으로 마이그레이션
-      const favorites = Array.isArray(parsed.favorites) && parsed.favorites.every((f) => f.lat && f.lng)
-        ? parsed.favorites
-        : defaultState.favorites
-      return { ...defaultState, ...parsed, favorites }
+      return migrate(JSON.parse(saved))
     } catch {
       return defaultState
     }
@@ -75,6 +125,12 @@ export function AppProvider({ children }) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
     } catch {}
   }, [state])
+
+  // 글씨 크기를 :root 에 반영 (모든 페이지 즉시 적용)
+  useEffect(() => {
+    const scale = FONT_SIZES[state.user.fontSize]?.scale ?? 1
+    document.documentElement.style.setProperty('--font-scale', String(scale))
+  }, [state.user.fontSize])
 
   const updateUser = (updates) => {
     setState((prev) => ({ ...prev, user: { ...prev.user, ...updates } }))
@@ -88,10 +144,72 @@ export function AppProvider({ children }) {
     setState((prev) => ({ ...prev, activeRoute: route }))
   }
 
+  // 가족
   const addFamily = (member) => {
     setState((prev) => ({
       ...prev,
-      family: [...prev.family, { ...member, id: Date.now().toString() }],
+      family: [
+        ...prev.family,
+        {
+          id: `fam_${Date.now()}`,
+          status: 'pending',
+          invitedAt: Date.now(),
+          connectedAt: null,
+          receiveSOS: true,
+          ...member,
+        },
+      ],
+    }))
+  }
+  const updateFamily = (id, updates) => {
+    setState((prev) => ({
+      ...prev,
+      family: prev.family.map((f) => (f.id === id ? { ...f, ...updates } : f)),
+    }))
+  }
+  const removeFamily = (id) => {
+    setState((prev) => ({ ...prev, family: prev.family.filter((f) => f.id !== id) }))
+  }
+
+  // 즐겨찾기
+  const addFavorite = (fav) => {
+    setState((prev) => ({
+      ...prev,
+      favorites: [...prev.favorites, { id: `fav_${Date.now()}`, emoji: '⭐', ...fav }],
+    }))
+  }
+  const updateFavorite = (id, updates) => {
+    setState((prev) => ({
+      ...prev,
+      favorites: prev.favorites.map((f) => (f.id === id ? { ...f, ...updates } : f)),
+    }))
+  }
+  const removeFavorite = (id) => {
+    setState((prev) => ({ ...prev, favorites: prev.favorites.filter((f) => f.id !== id) }))
+  }
+
+  // 긴급 연락처
+  const addEmergencyContact = (contact) => {
+    setState((prev) => ({
+      ...prev,
+      emergencyContacts: [
+        ...prev.emergencyContacts,
+        { id: `ec_${Date.now()}`, ...contact },
+      ],
+    }))
+  }
+  const updateEmergencyContact = (id, updates) => {
+    setState((prev) => ({
+      ...prev,
+      emergencyContacts: prev.emergencyContacts.map((c) =>
+        c.id === id ? { ...c, ...updates } : c
+      ),
+    }))
+  }
+  const removeEmergencyContact = (id) => {
+    setState((prev) => ({
+      ...prev,
+      emergencyContacts: prev.emergencyContacts.filter((c) => c.id !== id),
     }))
   }
 
@@ -103,6 +221,14 @@ export function AppProvider({ children }) {
         setDestination,
         setActiveRoute,
         addFamily,
+        updateFamily,
+        removeFamily,
+        addFavorite,
+        updateFavorite,
+        removeFavorite,
+        addEmergencyContact,
+        updateEmergencyContact,
+        removeEmergencyContact,
       }}
     >
       {children}

@@ -23,16 +23,17 @@ export function formatDistance(meters) {
   return `${(meters / 1000).toFixed(1)}km`
 }
 
-// 도보 분(걸음 상태별 m/min): slow ≈ 50, very-slow ≈ 36, needs-help ≈ 24, stroller ≈ 42
+// 도보 분(교통약자 유형별 m/min)
 const WALK_SPEED_MPM = {
-  slow: 50,
-  'very-slow': 36,
-  'needs-help': 24,
+  older: 42,
+  wheelchair: 30,
+  visual: 36,
   stroller: 42,
+  injured: 34,
 }
 
-export function estimateMinutes(meters, walkStateId = 'slow') {
-  const mpm = WALK_SPEED_MPM[walkStateId] || 50
+export function estimateMinutes(meters, walkStateId = 'older') {
+  const mpm = WALK_SPEED_MPM[walkStateId] || WALK_SPEED_MPM.older
   return Math.max(1, Math.round(meters / mpm))
 }
 

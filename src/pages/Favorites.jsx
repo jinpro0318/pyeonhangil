@@ -1,0 +1,209 @@
+import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Pencil, Trash2, MapPin, Star } from 'lucide-react'
+import { useAppState } from '../hooks/useAppState'
+import PageHeader from '../components/PageHeader'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { cn } from '@/lib/utils'
+
+const EMOJIS = ['🏠', '🏥', '🛒', '🏛️', '⛪', '🌳', '🍚', '☕', '💊', '🚉', '🏫', '⭐']
+
+async function searchKakaoPlaces(query) {
+  if (!query) return []
+  const params = new URLSearchParams({ query, x: '126.978', y: '37.566', radius: '20000' })
+  try {
+    const r = await fetch(`/api/local?${params.toString()}`)
+    if (!r.ok) return []
+    const data = await r.json()
+    return (data.pois || []).map((p) => ({
+      name: p.name, address: p.address || '', lat: p.lat, lng: p.lng,
+    }))
+  } catch { return [] }
+}
+
+export default function Favorites() {
+  const navigate = useNavigate()
+  const { state, addFavorite, updateFavorite, removeFavorite } = useAppState()
+  const [showAdd, setShowAdd] = useState(false)
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [draftName, setDraftName] = useState('')
+  const [draftEmoji, setDraftEmoji] = useState('⭐')
+  const debounceRef = useRef(null)
+
+  const doSearch = (q) => {
+    setQuery(q)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!q.trim()) { setResults([]); return }
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true)
+      try {
+        const list = await searchKakaoPlaces(q)
+        setResults(list.slice(0, 8))
+      } finally { setSearching(false) }
+    }, 350)
+  }
+
+  const handlePick = (place) => {
+    const name = draftName.trim() || place.name
+    addFavorite({
+      emoji: draftEmoji, name,
+      address: place.address || place.name,
+      lat: place.lat, lng: place.lng,
+    })
+    resetForm()
+  }
+
+  const resetForm = () => {
+    setShowAdd(false); setQuery(''); setResults([])
+    setDraftName(''); setDraftEmoji('⭐')
+  }
+
+  const handleRemove = (id, name) => {
+    if (confirm(`'${name}'을(를) 자주 가는 곳에서 삭제할까요?`)) removeFavorite(id)
+  }
+  const handleRename = (id, current) => {
+    const v = prompt('이름을 바꿔주세요', current)
+    if (v && v.trim()) updateFavorite(id, { name: v.trim() })
+  }
+  const handleEmoji = (id) => {
+    const v = prompt(`이모지를 입력하세요\n추천: ${EMOJIS.join(' ')}`, '⭐')
+    if (v && v.trim()) updateFavorite(id, { emoji: v.trim().slice(0, 2) })
+  }
+  const goRoute = (fav) => navigate('/route', { state: { destination: fav } })
+
+  return (
+    <div className="flex-1 flex flex-col bg-white overflow-hidden">
+      <PageHeader
+        title="자주 가는 곳"
+        action={!showAdd ? { label: '+ 추가', onClick: () => setShowAdd(true) } : null}
+      />
+
+      <div className="flex-1 overflow-y-auto no-scrollbar p-4 pb-8">
+        {showAdd && (
+          <div className="bg-ink-50 rounded-2xl p-4 space-y-4">
+            <div>
+              <div className="text-sm font-bold text-ink-700 mb-2">이모지 (선택)</div>
+              <div className="grid grid-cols-6 gap-2">
+                {EMOJIS.map((e) => (
+                  <button
+                    key={e}
+                    onClick={() => setDraftEmoji(e)}
+                    className={cn(
+                      'h-11 rounded-xl bg-white grid place-items-center text-2xl border-2 transition-all',
+                      draftEmoji === e ? 'border-primary bg-primary-50' : 'border-transparent'
+                    )}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-bold text-ink-700 mb-2">표시 이름 (선택)</div>
+              <Input
+                placeholder="예: 우리 동네 병원 (비워두면 장소명 사용)"
+                value={draftName}
+                onChange={(e) => setDraftName(e.target.value)}
+              />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-ink-700 mb-2">장소 검색</div>
+              <Input
+                placeholder="장소명, 주소, 키워드"
+                value={query}
+                onChange={(e) => doSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            {searching && <div className="text-center text-sm text-ink-500 py-2">검색 중...</div>}
+            {!searching && query && results.length === 0 && (
+              <div className="text-center text-sm text-ink-500 py-2">결과가 없어요</div>
+            )}
+            {results.length > 0 && (
+              <div className="space-y-2 mt-1">
+                {results.map((r, i) => (
+                  <button
+                    key={`${r.id || i}_${r.name}`}
+                    onClick={() => handlePick(r)}
+                    className="w-full flex items-center gap-3 p-3 bg-white hover:bg-primary-50 rounded-xl text-left active:scale-[0.98] transition-all"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-primary-50 text-primary grid place-items-center flex-shrink-0">
+                      <MapPin className="w-[18px] h-[18px]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[15px] font-bold truncate">{r.name}</div>
+                      <div className="text-xs text-ink-500 truncate mt-0.5">{r.address}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <Button variant="secondary" className="w-full mt-2" onClick={resetForm}>
+              취소
+            </Button>
+          </div>
+        )}
+
+        {!showAdd && (
+          <>
+            <div className="p-3.5 bg-accent-50 text-ink-700 rounded-xl text-sm font-semibold mb-4 flex items-center gap-2">
+              <Star className="w-4 h-4 text-warning flex-shrink-0" />
+              즐겨찾기는 홈 화면에서 한 번에 갈 수 있어요
+            </div>
+
+            {state.favorites.length === 0 ? (
+              <div className="py-12 flex flex-col items-center text-center text-ink-500">
+                <Star className="w-12 h-12 mb-3 opacity-50" />
+                <div className="text-[17px] font-bold text-ink-700 mb-1.5">등록된 곳이 없어요</div>
+                <div className="text-sm leading-relaxed">
+                  자주 가는 병원·집·마트 등을 등록하면<br />
+                  홈에서 한 번에 갈 수 있어요
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {state.favorites.map((f) => (
+                  <div key={f.id} className="flex items-center gap-2 p-2.5 bg-ink-50 rounded-2xl min-h-[72px]">
+                    <button
+                      onClick={() => handleEmoji(f.id)}
+                      aria-label="이모지 변경"
+                      className="w-12 h-12 rounded-2xl bg-white grid place-items-center text-2xl flex-shrink-0 hover:bg-ink-100"
+                    >
+                      {f.emoji || '⭐'}
+                    </button>
+                    <button
+                      onClick={() => goRoute(f)}
+                      className="flex-1 text-left min-w-0 px-1"
+                    >
+                      <div className="text-base font-bold truncate">{f.name}</div>
+                      <div className="text-xs text-ink-500 truncate mt-0.5">{f.address}</div>
+                    </button>
+                    <button
+                      onClick={() => handleRename(f.id, f.name)}
+                      aria-label="이름 변경"
+                      className="w-9 h-9 rounded-lg grid place-items-center text-ink-500 hover:bg-ink-200 flex-shrink-0"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleRemove(f.id, f.name)}
+                      aria-label="삭제"
+                      className="w-9 h-9 rounded-lg grid place-items-center text-ink-400 hover:bg-ink-200 hover:text-danger flex-shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
