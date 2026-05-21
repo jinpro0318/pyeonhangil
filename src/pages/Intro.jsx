@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Armchair, Database, ShieldCheck, Users } from 'lucide-react'
+import { Armchair, Database, LogIn, ShieldCheck, Users } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +30,7 @@ const STEPS = [
 export default function Intro() {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
+  const touchStartX = useRef(null)
   const current = STEPS[step]
 
   const goHome = () => {
@@ -37,19 +38,53 @@ export default function Intro() {
     navigate('/home', { replace: true })
   }
 
+  const goLogin = () => {
+    navigate('/login', { state: { from: '/home' } })
+  }
+
   const handleNext = () => {
     if (step < STEPS.length - 1) setStep(step + 1)
     else goHome()
   }
 
+  const handlePrev = () => {
+    setStep((prev) => Math.max(0, prev - 1))
+  }
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0]?.clientX ?? null
+  }
+
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current == null) return
+    const endX = e.changedTouches[0]?.clientX ?? touchStartX.current
+    const diff = touchStartX.current - endX
+    touchStartX.current = null
+    if (Math.abs(diff) < 48) return
+    if (diff > 0) handleNext()
+    else handlePrev()
+  }
+
   return (
-    <div className="flex-1 flex flex-col px-6 py-6 bg-background">
-      <div className="min-h-[64px] flex justify-end items-center pl-[64px]">
+    <div
+      className="flex-1 flex flex-col px-6 py-6 bg-background"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className="min-h-[64px] flex justify-between items-center pl-[64px]">
         <button
           onClick={goHome}
           className="text-sm font-bold text-ink-500 py-2 px-3 rounded-lg hover:bg-white border border-transparent hover:border-ink-200"
         >
           건너뛰기 ›
+        </button>
+        <button
+          type="button"
+          onClick={goLogin}
+          className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-white px-3 py-2 text-xs font-extrabold text-primary shadow-sm active:scale-95"
+        >
+          <LogIn className="w-3.5 h-3.5" />
+          로그인/회원가입
         </button>
       </div>
 
@@ -109,7 +144,7 @@ export default function Intro() {
           ))}
         </div>
         <Button size="xl" className="w-full" onClick={handleNext}>
-          {step < STEPS.length - 1 ? '다음' : '계속'}
+          {step < STEPS.length - 1 ? '다음으로 넘기기' : '홈으로 시작하기'}
         </Button>
       </div>
     </div>

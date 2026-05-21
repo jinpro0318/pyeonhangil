@@ -62,8 +62,8 @@ export default function Login() {
           return
         }
       }
-      const onboarded = localStorage.getItem('pyeonhangil_onboarded')
-      navigate(onboarded ? from : '/intro', { replace: true })
+      localStorage.setItem('pyeonhangil_onboarded', '1')
+      navigate(from || '/home', { replace: true })
     } catch (err) {
       const msg = ERROR_MESSAGES[err.code] || '로그인에 실패했어요. 다시 시도해 주세요'
       toast.error(msg)

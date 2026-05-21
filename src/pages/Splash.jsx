@@ -1,20 +1,16 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
 
 export default function Splash() {
   const navigate = useNavigate()
-  const { user, loading } = useAuth()
 
   useEffect(() => {
-    if (loading) return
     const hasOnboarded = localStorage.getItem('pyeonhangil_onboarded')
     const timer = setTimeout(() => {
-      if (!user) navigate('/login', { replace: true })
-      else navigate(hasOnboarded ? '/home' : '/intro', { replace: true })
+      navigate(hasOnboarded ? '/home' : '/intro', { replace: true })
     }, 1500)
     return () => clearTimeout(timer)
-  }, [navigate, user, loading])
+  }, [navigate])
 
   return (
     <div className="flex-1 relative flex flex-col items-center justify-center bg-background text-ink-900 animate-fade-in overflow-hidden px-8">

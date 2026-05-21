@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  BellRing, Keyboard, MapPinned, Mic, Plus, Route, Users,
+  BellRing, Keyboard, LogIn, MapPinned, Mic, Plus, Route, Users,
 } from 'lucide-react'
 import { useAppState, WALK_STATES } from '../hooks/useAppState'
+import { useAuth } from '../hooks/useAuth'
 import { useGPS } from '../hooks/useGPS'
 import TabBar from '../components/TabBar'
 import SOSButton from '../components/SOSButton'
@@ -22,6 +23,7 @@ const WALK_CHIP = {
 export default function Home() {
   const navigate = useNavigate()
   const { state } = useAppState()
+  const { user } = useAuth()
   const { hasPosition, error: gpsError, start } = useGPS({ enableStayDetection: false })
   const walk = WALK_STATES[state.user.walkState] || WALK_STATES.older
 
@@ -31,7 +33,7 @@ export default function Home() {
     <>
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* 상단 사용자 상태 */}
-        <div className="min-h-[82px] pl-[64px] pr-[22px] pt-2 pb-3 flex items-center flex-shrink-0 bg-background">
+        <div className="min-h-[82px] pl-[64px] pr-[22px] pt-2 pb-3 flex items-center gap-3 flex-shrink-0 bg-background">
           <div className="min-w-0 flex-1">
             <div className="text-sm text-ink-700 font-extrabold truncate">
               {state.user.name}님의 안전한 이동을 도와드려요
@@ -50,6 +52,14 @@ export default function Home() {
               </div>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => navigate(user ? '/my' : '/login', { state: { from: '/home' } })}
+            className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-white px-3 py-2 text-xs font-extrabold text-primary shadow-sm active:scale-95 flex-shrink-0"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            {user ? '내 정보' : '로그인/회원가입'}
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar px-[22px] pb-24">

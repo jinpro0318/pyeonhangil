@@ -32,14 +32,6 @@ import Favorites from './pages/Favorites'
 import Admin from './pages/Admin'
 import { isAdminEmail } from './lib/admin'
 
-function RequireAuth({ children }) {
-  const { user, loading } = useAuth()
-  const location = useLocation()
-  if (loading) return null
-  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
-  return children
-}
-
 function RequireAdmin({ children }) {
   const { user, loading } = useAuth()
   const location = useLocation()
@@ -59,29 +51,29 @@ export default function App() {
             {/* 온보딩 */}
             <Route path="/" element={<Splash />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/intro" element={<RequireAuth><Intro /></RequireAuth>} />
-            <Route path="/permissions" element={<RequireAuth><Permissions /></RequireAuth>} />
-            <Route path="/walk-state" element={<RequireAuth><WalkState /></RequireAuth>} />
+            <Route path="/intro" element={<Intro />} />
+            <Route path="/permissions" element={<Permissions />} />
+            <Route path="/walk-state" element={<WalkState />} />
 
             {/* 메인 */}
-            <Route path="/home" element={<RequireAuth><Home /></RequireAuth>} />
-            <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />
-            <Route path="/route" element={<RequireAuth><RouteSuggest /></RequireAuth>} />
-            <Route path="/map" element={<RequireAuth><MapMain /></RequireAuth>} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/route" element={<RouteSuggest />} />
+            <Route path="/map" element={<MapMain />} />
 
             {/* 길 안내 */}
-            <Route path="/navigation" element={<RequireAuth><Navigation /></RequireAuth>} />
-            <Route path="/resting" element={<RequireAuth><Resting /></RequireAuth>} />
-            <Route path="/arrived" element={<RequireAuth><Arrived /></RequireAuth>} />
-            <Route path="/sos" element={<RequireAuth><SOS /></RequireAuth>} />
+            <Route path="/navigation" element={<Navigation />} />
+            <Route path="/resting" element={<Resting />} />
+            <Route path="/arrived" element={<Arrived />} />
+            <Route path="/sos" element={<SOS />} />
 
             {/* 설정 */}
-            <Route path="/family" element={<RequireAuth><Family /></RequireAuth>} />
-            <Route path="/my" element={<RequireAuth><MyInfo /></RequireAuth>} />
-            <Route path="/community" element={<RequireAuth><Community /></RequireAuth>} />
-            <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
-            <Route path="/emergency" element={<RequireAuth><EmergencyContacts /></RequireAuth>} />
-            <Route path="/favorites" element={<RequireAuth><Favorites /></RequireAuth>} />
+            <Route path="/family" element={<Family />} />
+            <Route path="/my" element={<MyInfo />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/emergency" element={<EmergencyContacts />} />
+            <Route path="/favorites" element={<Favorites />} />
             <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
 
             <Route path="*" element={<Navigate to="/" />} />
