@@ -6,7 +6,7 @@ import {
   signOut as fbSignOut,
   updateProfile,
 } from 'firebase/auth'
-import { auth } from '../lib/firebase'
+import { auth, isFirebaseConfigured } from '../lib/firebase'
 
 const AuthContext = createContext(null)
 
@@ -15,6 +15,10 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false)
+      return undefined
+    }
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u)
       setLoading(false)
@@ -22,20 +26,29 @@ export function AuthProvider({ children }) {
     return unsub
   }, [])
 
-  const signIn = (email, password) => signInWithEmailAndPassword(auth, email, password)
+  const requireAuth = () => {
+    if (!auth) {
+      const err = new Error('Firebase 환경변수가 설정되지 않았어요')
+      err.code = 'app/firebase-not-configured'
+      throw err
+    }
+    return auth
+  }
+
+  const signIn = (email, password) => signInWithEmailAndPassword(requireAuth(), email, password)
 
   const signUp = async (email, password, displayName) => {
-    const cred = await createUserWithEmailAndPassword(auth, email, password)
+    const cred = await createUserWithEmailAndPassword(requireAuth(), email, password)
     if (displayName) {
       await updateProfile(cred.user, { displayName })
     }
     return cred
   }
 
-  const signOut = () => fbSignOut(auth)
+  const signOut = () => fbSignOut(requireAuth())
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, isFirebaseConfigured }}>
       {children}
     </AuthContext.Provider>
   )

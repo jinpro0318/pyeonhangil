@@ -17,12 +17,13 @@ const ERROR_MESSAGES = {
   'auth/weak-password': '비밀번호는 6자 이상이어야 해요',
   'auth/network-request-failed': '네트워크 연결을 확인해 주세요',
   'auth/too-many-requests': '잠시 후 다시 시도해 주세요',
+  'app/firebase-not-configured': '배포 환경에 Firebase 환경변수를 설정해 주세요',
 }
 
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, isFirebaseConfigured } = useAuth()
   const { updateUser } = useAppState()
 
   const [mode, setMode] = useState('signin')
@@ -95,6 +96,11 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          {!isFirebaseConfigured && (
+            <div className="rounded-xl border border-warning/30 bg-warning-50 px-4 py-3 text-sm font-semibold leading-relaxed text-warning">
+              Firebase 환경변수가 없어 로그인 기능을 불러오지 못했어요. Vercel 프로젝트 설정에 Firebase 값을 추가해 주세요.
+            </div>
+          )}
           {isSignUp && (
             <Field icon={<UserIcon className="w-5 h-5" />}>
               <Input
