@@ -33,7 +33,7 @@ export default function Home() {
     <>
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* 상단 사용자 상태 */}
-        <div className="min-h-[82px] pl-[64px] pr-[22px] pt-2 pb-3 flex items-center gap-3 flex-shrink-0 bg-background">
+        <div className="min-h-[82px] px-[22px] pt-2 pb-3 flex items-center gap-3 flex-shrink-0 bg-background">
           <div className="min-w-0 flex-1">
             <div className="text-sm text-ink-700 font-extrabold truncate">
               {state.user.name}님의 안전한 이동을 도와드려요

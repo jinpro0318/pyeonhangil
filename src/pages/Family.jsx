@@ -64,7 +64,7 @@ export default function Family() {
   return (
     <>
       <div className="flex-1 flex flex-col overflow-hidden bg-background">
-        <div className="min-h-[64px] pl-[64px] pr-[22px] flex items-center">
+        <div className="min-h-[64px] px-[22px] flex items-center">
           <h2 className="text-2xl font-extrabold tracking-normal">우리 가족</h2>
         </div>
 

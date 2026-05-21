@@ -63,7 +63,7 @@ export default function Community() {
   return (
     <>
       <div className="flex-1 flex flex-col overflow-hidden relative bg-background">
-        <div className="min-h-[64px] pl-[64px] pr-5 flex flex-col justify-center">
+        <div className="min-h-[64px] px-5 flex flex-col justify-center">
           <h2 className="text-xl font-extrabold tracking-normal">커뮤니티 제보</h2>
           <p className="text-xs text-ink-500 font-semibold mt-0.5">
             현장 제보로 길 정보를 채워요

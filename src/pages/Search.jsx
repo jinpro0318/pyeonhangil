@@ -134,7 +134,7 @@ export default function Search() {
 
   return (
     <div className="flex-1 flex flex-col px-[22px] pb-6 overflow-hidden bg-background">
-      <div className="min-h-[64px] flex items-center gap-3 pl-[64px] pr-4">
+      <div className="min-h-[64px] flex items-center gap-3 px-4">
         <button
           onClick={() => navigate(-1)}
           aria-label="뒤로"

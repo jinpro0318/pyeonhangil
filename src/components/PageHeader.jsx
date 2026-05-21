@@ -12,7 +12,7 @@ export default function PageHeader({ title, backTo, onBack, action, transparent 
 
   return (
     <header
-      className={`flex items-center gap-2 px-4 pl-[64px] min-h-[64px] flex-shrink-0 ${
+      className={`flex items-center gap-2 px-4 min-h-[64px] flex-shrink-0 ${
         transparent ? 'bg-transparent' : 'bg-white border-b border-ink-100'
       }`}
     >

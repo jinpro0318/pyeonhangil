@@ -32,6 +32,8 @@ import Favorites from './pages/Favorites'
 import Admin from './pages/Admin'
 import { isAdminEmail } from './lib/admin'
 
+const HIDE_BRAND_ON = ['/', '/login', '/intro', '/permissions', '/walk-state']
+
 function RequireAdmin({ children }) {
   const { user, loading } = useAuth()
   const location = useLocation()
@@ -42,42 +44,47 @@ function RequireAdmin({ children }) {
 }
 
 export default function App() {
+  const location = useLocation()
+  const showBrand = !HIDE_BRAND_ON.includes(location.pathname)
+
   return (
     <AuthProvider>
       <AppProvider>
         <div className="app-shell">
           <AppBrand />
-          <Routes>
-            {/* 온보딩 */}
-            <Route path="/" element={<Splash />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/intro" element={<Intro />} />
-            <Route path="/permissions" element={<Permissions />} />
-            <Route path="/walk-state" element={<WalkState />} />
+          <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${showBrand ? 'pt-16' : ''}`}>
+            <Routes>
+              {/* 온보딩 */}
+              <Route path="/" element={<Splash />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/intro" element={<Intro />} />
+              <Route path="/permissions" element={<Permissions />} />
+              <Route path="/walk-state" element={<WalkState />} />
 
-            {/* 메인 */}
-            <Route path="/home" element={<Home />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/route" element={<RouteSuggest />} />
-            <Route path="/map" element={<MapMain />} />
+              {/* 메인 */}
+              <Route path="/home" element={<Home />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/route" element={<RouteSuggest />} />
+              <Route path="/map" element={<MapMain />} />
 
-            {/* 길 안내 */}
-            <Route path="/navigation" element={<Navigation />} />
-            <Route path="/resting" element={<Resting />} />
-            <Route path="/arrived" element={<Arrived />} />
-            <Route path="/sos" element={<SOS />} />
+              {/* 길 안내 */}
+              <Route path="/navigation" element={<Navigation />} />
+              <Route path="/resting" element={<Resting />} />
+              <Route path="/arrived" element={<Arrived />} />
+              <Route path="/sos" element={<SOS />} />
 
-            {/* 설정 */}
-            <Route path="/family" element={<Family />} />
-            <Route path="/my" element={<MyInfo />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/emergency" element={<EmergencyContacts />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
+              {/* 설정 */}
+              <Route path="/family" element={<Family />} />
+              <Route path="/my" element={<MyInfo />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/emergency" element={<EmergencyContacts />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
 
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </div>
         </div>
       </AppProvider>
     </AuthProvider>
