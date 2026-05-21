@@ -18,7 +18,7 @@ export default function Splash() {
       <div className="relative z-10 w-full">
         <div className="mx-auto mb-7 grid place-items-center">
           <img
-            src="/pyeonhangil_icon_clean_20260521.png"
+            src="/pyeonhangil_icon_clean_edge_20260521.png"
             alt="편한길 로고"
             width="180" height="180"
             className="object-contain drop-shadow-2xl"
