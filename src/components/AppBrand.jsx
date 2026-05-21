@@ -1,12 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 
-const HIDE_ON = ['/', '/login', '/intro', '/permissions', '/walk-state']
-
 export default function AppBrand() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  if (HIDE_ON.includes(location.pathname)) return null
+  if (location.pathname !== '/home') return null
 
   const handleClick = () => {
     if (location.pathname !== '/home') navigate('/home')

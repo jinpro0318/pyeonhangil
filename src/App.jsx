@@ -32,8 +32,6 @@ import Favorites from './pages/Favorites'
 import Admin from './pages/Admin'
 import { isAdminEmail } from './lib/admin'
 
-const HIDE_BRAND_ON = ['/', '/login', '/intro', '/permissions', '/walk-state']
-
 function RequireAdmin({ children }) {
   const { user, loading } = useAuth()
   const location = useLocation()
@@ -45,7 +43,7 @@ function RequireAdmin({ children }) {
 
 export default function App() {
   const location = useLocation()
-  const showBrand = !HIDE_BRAND_ON.includes(location.pathname)
+  const showBrand = location.pathname === '/home'
 
   return (
     <AuthProvider>
