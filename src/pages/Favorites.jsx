@@ -5,9 +5,8 @@ import { useAppState } from '../hooks/useAppState'
 import PageHeader from '../components/PageHeader'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
+import { FAVORITE_ICONS, favoriteIcon, IconBadge } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
-
-const EMOJIS = ['🏠', '🏥', '🛒', '🏛️', '⛪', '🌳', '🍚', '☕', '💊', '🚉', '🏫', '⭐']
 
 async function searchKakaoPlaces(query) {
   if (!query) return []
@@ -30,7 +29,7 @@ export default function Favorites() {
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
   const [draftName, setDraftName] = useState('')
-  const [draftEmoji, setDraftEmoji] = useState('⭐')
+  const [draftIcon, setDraftIcon] = useState('star')
   const debounceRef = useRef(null)
 
   const doSearch = (q) => {
@@ -49,7 +48,7 @@ export default function Favorites() {
   const handlePick = (place) => {
     const name = draftName.trim() || place.name
     addFavorite({
-      emoji: draftEmoji, name,
+      icon: draftIcon, name,
       address: place.address || place.name,
       lat: place.lat, lng: place.lng,
     })
@@ -58,7 +57,7 @@ export default function Favorites() {
 
   const resetForm = () => {
     setShowAdd(false); setQuery(''); setResults([])
-    setDraftName(''); setDraftEmoji('⭐')
+    setDraftName(''); setDraftIcon('star')
   }
 
   const handleRemove = (id, name) => {
@@ -68,9 +67,11 @@ export default function Favorites() {
     const v = prompt('이름을 바꿔주세요', current)
     if (v && v.trim()) updateFavorite(id, { name: v.trim() })
   }
-  const handleEmoji = (id) => {
-    const v = prompt(`이모지를 입력하세요\n추천: ${EMOJIS.join(' ')}`, '⭐')
-    if (v && v.trim()) updateFavorite(id, { emoji: v.trim().slice(0, 2) })
+  const handleIcon = (fav) => {
+    const cur = favoriteIcon(fav)
+    const idx = FAVORITE_ICONS.findIndex((o) => o.key === cur.key)
+    const next = FAVORITE_ICONS[(idx + 1) % FAVORITE_ICONS.length]
+    updateFavorite(fav.id, { icon: next.key })
   }
   const goRoute = (fav) => navigate('/route', { state: { destination: fav } })
 
@@ -87,16 +88,17 @@ export default function Favorites() {
             <div>
               <div className="text-sm font-bold text-ink-700 mb-2">이모지 (선택)</div>
               <div className="grid grid-cols-6 gap-2">
-                {EMOJIS.map((e) => (
+                {FAVORITE_ICONS.map((opt) => (
                   <button
-                    key={e}
-                    onClick={() => setDraftEmoji(e)}
+                    key={opt.key}
+                    onClick={() => setDraftIcon(opt.key)}
+                    aria-label={opt.label}
                     className={cn(
-                      'h-11 rounded-xl bg-white grid place-items-center text-2xl border-2 transition-all',
-                      draftEmoji === e ? 'border-primary bg-primary-50' : 'border-transparent'
+                      'h-11 rounded-xl bg-white grid place-items-center border-2 transition-all',
+                      draftIcon === opt.key ? 'border-primary bg-primary-50' : 'border-transparent'
                     )}
                   >
-                    {e}
+                    <IconBadge Icon={opt.Icon} tone={opt.tone} size="sm" />
                   </button>
                 ))}
               </div>
@@ -167,14 +169,16 @@ export default function Favorites() {
               </div>
             ) : (
               <div className="space-y-2.5">
-                {state.favorites.map((f) => (
+                {state.favorites.map((f) => {
+                  const ic = favoriteIcon(f)
+                  return (
                   <div key={f.id} className="flex items-center gap-2 p-2.5 bg-ink-50 rounded-2xl min-h-[72px]">
                     <button
-                      onClick={() => handleEmoji(f.id)}
+                      onClick={() => handleIcon(f)}
                       aria-label="이모지 변경"
-                      className="w-12 h-12 rounded-2xl bg-white grid place-items-center text-2xl flex-shrink-0 hover:bg-ink-100"
+                      className="w-12 h-12 rounded-2xl bg-white grid place-items-center flex-shrink-0 hover:bg-ink-100"
                     >
-                      {f.emoji || '⭐'}
+                      <IconBadge Icon={ic.Icon} tone={ic.tone} size="md" className="bg-transparent" />
                     </button>
                     <button
                       onClick={() => goRoute(f)}
@@ -198,7 +202,8 @@ export default function Favorites() {
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </>

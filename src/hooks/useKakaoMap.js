@@ -1,4 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { createElement, useCallback, useEffect, useRef, useState } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { Flag, MapPin, Navigation, TriangleAlert } from 'lucide-react'
+import { POI_ICONS } from '@/lib/catalog'
 
 /**
  * 편한길 카카오맵 훅
@@ -80,18 +83,32 @@ const MARKER_COLORS = {
   start: '#22C55E',
   end: '#3182F6',
 }
-const MARKER_ICONS = {
-  rest: '🪑',
-  cross: '🚸',
-  toilet: '🚻',
-  elev: '🛗',
-  ramp: '📐',
-  hospital: '🏥',
-  pharmacy: '💊',
-  subway: '🚇',
-  public: '🏛️',
-  start: '🟢',
-  end: '🏁',
+// 마커 아이콘 — 카탈로그(Lucide) 단일 출처를 SVG 문자열로 렌더해 재사용
+const MARKER_ICON_COMPONENTS = {
+  rest: POI_ICONS.rest.Icon,
+  cross: POI_ICONS.cross.Icon,
+  toilet: POI_ICONS.toilet.Icon,
+  elev: POI_ICONS.elev.Icon,
+  ramp: POI_ICONS.ramp.Icon,
+  hospital: POI_ICONS.hospital.Icon,
+  pharmacy: POI_ICONS.pharmacy.Icon,
+  subway: POI_ICONS.subway.Icon,
+  public: POI_ICONS.public.Icon,
+  start: Navigation,
+  end: Flag,
+  report: TriangleAlert,
+}
+
+const svgCache = new Map()
+function iconSvg(type, { color = '#fff', size = 13, strokeWidth = 2.6 } = {}) {
+  const cacheKey = `${type}|${color}|${size}|${strokeWidth}`
+  if (svgCache.has(cacheKey)) return svgCache.get(cacheKey)
+  const Comp = MARKER_ICON_COMPONENTS[type] || MapPin
+  const markup = renderToStaticMarkup(
+    createElement(Comp, { width: size, height: size, color, strokeWidth, fill: 'none' })
+  )
+  svgCache.set(cacheKey, markup)
+  return markup
 }
 
 function escapeHtml(s = '') {
@@ -102,7 +119,6 @@ function escapeHtml(s = '') {
 
 function poiMarkerHtml(poi) {
   const color = MARKER_COLORS[poi.type] || '#3182F6'
-  const icon = MARKER_ICONS[poi.type] || '📍'
   const isEndpoint = poi.type === 'start' || poi.type === 'end'
 
   if (isEndpoint) {
@@ -118,7 +134,7 @@ function poiMarkerHtml(poi) {
         border:3px solid white;
         cursor:pointer;
       ">
-        <span style="font-size:16px; transform: rotate(45deg);">${icon}</span>
+        <span style="transform: rotate(45deg); display:flex;">${iconSvg(poi.type, { size: 16 })}</span>
       </div>
     `
   }
@@ -133,24 +149,22 @@ function poiMarkerHtml(poi) {
         border-radius:50%;
         box-shadow:0 2px 6px rgba(249,115,22,0.5);
         display:flex; align-items:center; justify-content:center;
-        font-size:13px; line-height:1;
         cursor:pointer;
-      ">⚠️</div>
+      ">${iconSvg('report', { size: 14 })}</div>
     `
   }
 
-  // 일반 POI: 색 원 + 이모지 (라벨은 탭 카드에서 표시)
+  // 일반 POI: 색 원 + 아이콘 (라벨은 탭 카드에서 표시)
   return `
     <div data-poi-id="${escapeHtml(poi.id)}" style="
-      width:20px; height:20px;
+      width:24px; height:24px;
       background:${color};
       border-radius:50%;
       border:2.5px solid white;
       box-shadow:0 1px 4px rgba(0,0,0,0.3);
       cursor:pointer;
       display:flex; align-items:center; justify-content:center;
-      font-size:10px; line-height:1;
-    ">${icon}</div>
+    ">${iconSvg(poi.type, { size: 13 })}</div>
   `
 }
 

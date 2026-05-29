@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { Check, Clock, LifeBuoy, Link as LinkIcon, X as XIcon, UserPlus } from 'lucide-react'
+import { Check, Clock, LifeBuoy, Link as LinkIcon, X as XIcon, UserPlus, UsersRound, MessageCircle } from 'lucide-react'
 import { useAppState } from '../hooks/useAppState'
 import TabBar from '../components/TabBar'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog'
+import { shareInviteKakao } from '@/lib/kakaoShare'
 import { cn } from '@/lib/utils'
+import { IconBadge } from '@/lib/catalog'
 
 const RELATIONS = ['딸', '아들', '배우자', '형제', '자매', '친구', '기타']
 
@@ -54,6 +57,20 @@ export default function Family() {
     }
   }
 
+  const sendKakao = async () => {
+    if (!lastLink) return
+    try {
+      await shareInviteKakao({
+        link: lastLink.link,
+        inviteeName: lastLink.name,
+        inviterName: state.user?.name,
+      })
+    } catch {
+      await copyLink(lastLink.link)
+      alert('카카오톡 공유는 실제 배포 환경(카카오 키·도메인 등록)에서 동작해요.\n우선 링크를 복사했어요.')
+    }
+  }
+
   const handleRemove = (id, name) => {
     if (confirm(`${name}님을 가족에서 삭제할까요?`)) removeFamily(id)
   }
@@ -63,7 +80,7 @@ export default function Family() {
 
   return (
     <>
-      <div className="flex-1 flex flex-col overflow-hidden bg-background">
+      <div className="flex-1 flex flex-col overflow-hidden bg-white">
         <div className="min-h-[64px] px-[22px] flex items-center">
           <h2 className="text-2xl font-extrabold tracking-normal">우리 가족</h2>
         </div>
@@ -80,23 +97,6 @@ export default function Family() {
               </div>
             </div>
           </div>
-
-          {lastLink && (
-            <div className="bg-white border border-primary-100 rounded-xl p-4 shadow-sm">
-              <div className="text-[15px] font-bold text-primary-700 mb-2">
-                📨 {lastLink.name}님께 보낼 링크
-              </div>
-              <div className="bg-ink-50 border border-ink-200 p-2.5 rounded-lg text-[13px] break-all text-ink-700 font-mono mb-3">
-                {lastLink.link}
-              </div>
-              <div className="grid grid-cols-[1fr_2fr] gap-2">
-                <Button variant="secondary" onClick={() => setLastLink(null)}>닫기</Button>
-                <Button onClick={() => copyLink(lastLink.link)}>
-                  <LinkIcon className="w-4 h-4" /> 링크 복사
-                </Button>
-              </div>
-            </div>
-          )}
 
           {showInvite && (
             <div className="bg-white border border-ink-200 rounded-xl p-4 space-y-3 shadow-sm">
@@ -147,7 +147,7 @@ export default function Family() {
 
           {family.length === 0 && (
             <div className="py-10 flex flex-col items-center text-center text-ink-500">
-              <div className="text-5xl mb-2 opacity-60">👨‍👩‍👧</div>
+              <IconBadge Icon={UsersRound} tone="primary" size="2xl" className="mb-3 opacity-90" />
               <div className="text-[17px] font-bold text-ink-700 mb-1">아직 연결된 가족이 없어요</div>
               <div className="text-sm leading-relaxed">
                 가족을 초대하면 외출·도착·SOS 때<br />자동으로 알림이 가요
@@ -209,8 +209,8 @@ export default function Family() {
                   )}
                   {!connected && f.inviteToken && (
                     <button
-                      onClick={() => copyLink(makeInviteLink(f.inviteToken))}
-                      aria-label="링크 다시 보내기"
+                      onClick={() => setLastLink({ name: f.name, link: makeInviteLink(f.inviteToken) })}
+                      aria-label="초대 링크 다시 보내기"
                       className="w-9 h-9 rounded-lg grid place-items-center text-primary hover:bg-primary-50"
                     >
                       <LinkIcon className="w-4 h-4" />
@@ -240,6 +240,35 @@ export default function Family() {
           )}
         </div>
       </div>
+
+      {/* 초대 링크 공유 팝업 — 링크 복사 / 카카오톡 전송 */}
+      <Dialog open={!!lastLink} onOpenChange={(open) => { if (!open) setLastLink(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>초대 링크 보내기</DialogTitle>
+            <DialogDescription>
+              {lastLink?.name ? `${lastLink.name}님께 ` : ''}아래 링크를 보내고, 수락하면 가족으로 연결돼요.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-ink-50 border border-ink-200 p-3 rounded-xl text-[13px] break-all text-ink-700 font-mono select-all">
+            {lastLink?.link}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => lastLink && copyLink(lastLink.link)}>
+              <LinkIcon className="w-4 h-4" /> 링크 복사
+            </Button>
+            <Button
+              onClick={sendKakao}
+              className="bg-[#FEE500] text-[#191600] hover:bg-[#F2D900] shadow-none"
+            >
+              <MessageCircle className="w-4 h-4" /> 카카오톡
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <TabBar />
     </>
   )

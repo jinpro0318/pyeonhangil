@@ -8,6 +8,7 @@ import PageHeader from '../components/PageHeader'
 import { Button } from '../components/ui/button'
 import { useAuth } from '../hooks/useAuth'
 import { getActiveReports, removeReport, REPORT_TYPES } from '../services/reportsStore'
+import { IconBadge, reportIcon, hazardIcon, TONES } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -101,45 +102,29 @@ export default function Admin() {
         <SectionTitle>위험 유형 분포</SectionTitle>
         <div className="bg-white border border-ink-200 rounded-xl p-4 shadow-sm mb-5">
           <div className="space-y-3">
-            {reportSummary.map((item) => (
+            {reportSummary.map((item) => {
+              const ic = hazardIcon(item.type)
+              return (
               <div key={item.type}>
                 <div className="flex items-center justify-between gap-3 mb-1.5">
                   <div className="flex items-center gap-2 text-sm font-bold text-ink-700">
-                    <span>{item.emoji}</span>
+                    <IconBadge Icon={ic.Icon} tone={ic.tone} size="xs" />
                     <span>{item.label}</span>
                   </div>
                   <span className="text-xs font-extrabold text-ink-500">{item.count}건</span>
                 </div>
                 <div className="h-2 rounded-full bg-ink-100 overflow-hidden">
                   <div
-                    className="h-full rounded-full"
+                    className={cn('h-full rounded-full', (TONES[ic.tone] || TONES.primary).dot)}
                     style={{
                       width: `${reports.length ? Math.max(6, (item.count / reports.length) * 100) : 0}%`,
-                      background: item.color,
                     }}
                   />
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
-        </div>
-
-        <SectionTitle>데이터 연동 상태</SectionTitle>
-        <div className="grid grid-cols-2 gap-2 mb-5">
-          {apiStatus.map((item) => (
-            <div key={item.label} className="bg-white border border-ink-200 rounded-xl p-4 shadow-sm">
-              <div className={cn(
-                'w-9 h-9 rounded-lg grid place-items-center mb-3 border',
-                item.ready ? 'bg-success-50 text-success-600 border-success-50' : 'bg-warning-50 text-warning border-warning/20'
-              )}>
-                {item.ready ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
-              </div>
-              <div className="text-sm font-extrabold text-ink-900">{item.label}</div>
-              <div className="text-xs font-bold text-ink-500 mt-1">
-                {item.ready ? '연결됨' : '키 확인 필요'} · {item.scope}
-              </div>
-            </div>
-          ))}
         </div>
 
         <SectionTitle>제보 검토 목록</SectionTitle>
@@ -148,15 +133,11 @@ export default function Admin() {
             <EmptyState text="검토할 활성 제보가 없습니다" />
           ) : reports.map((r) => {
             const meta = REPORT_TYPES[r.type] || REPORT_TYPES.other
+            const ic = reportIcon(r.type, r.category || 'hazard')
             return (
               <div key={r.id} className="bg-white border border-ink-200 rounded-xl p-4 shadow-sm">
                 <div className="flex gap-3">
-                  <div
-                    className="w-10 h-10 rounded-lg grid place-items-center flex-shrink-0 border border-current/10"
-                    style={{ background: meta.color + '18', color: meta.color }}
-                  >
-                    {meta.emoji}
-                  </div>
+                  <IconBadge Icon={ic.Icon} tone={ic.tone} size="sm" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <div className="font-extrabold text-ink-900">{meta.label}</div>
@@ -191,17 +172,9 @@ export default function Admin() {
 }
 
 function StatCard({ Icon, label, value, tone }) {
-  const tones = {
-    primary: 'bg-primary-50 text-primary border-primary-100',
-    success: 'bg-success-50 text-success-600 border-success-50',
-    warning: 'bg-warning-50 text-warning border-warning/20',
-    danger: 'bg-danger-50 text-danger border-danger/20',
-  }
   return (
     <div className="bg-white border border-ink-200 rounded-xl p-4 shadow-sm">
-      <div className={cn('w-10 h-10 rounded-lg grid place-items-center mb-3 border', tones[tone])}>
-        <Icon className="w-5 h-5" />
-      </div>
+      <IconBadge Icon={Icon} tone={tone} size="sm" className="mb-3" />
       <div className="text-xl font-extrabold text-ink-900 leading-tight break-keep">{value}</div>
       <div className="text-xs font-bold text-ink-500 mt-2">{label}</div>
     </div>

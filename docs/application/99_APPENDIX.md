@@ -127,7 +127,7 @@
 │   └── place.js                       ← 카카오 장소 상세
 │
 ├── public/
-│   ├── pyeonhangil_icon_clean_edge_20260521.png
+│   ├── pyeonhangil_icon_clean_high.png
 │   └── data/                          ← GeoJSON 시드
 │       ├── subway_elevators.geojson
 │       ├── jangsu_chairs.geojson

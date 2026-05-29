@@ -7,6 +7,7 @@ import { POI_TYPES } from '../data/pois'
 import { formatDistance } from '../utils/geo'
 import { fetchPlaceDetail } from '../services/placeApi'
 import { Button } from './ui/button'
+import { IconBadge, poiIcon } from '@/lib/catalog'
 
 export default function PoiDetailCard({ poi, onClose }) {
   const navigate = useNavigate()
@@ -63,12 +64,7 @@ export default function PoiDetailCard({ poi, onClose }) {
         <div className="px-5 pb-5">
           {/* 헤더 */}
           <div className="flex items-start gap-3 mb-4 pr-10 relative">
-            <div
-              className="w-12 h-12 rounded-lg grid place-items-center text-2xl flex-shrink-0 border border-current/10"
-              style={{ background: meta.color + '22', color: meta.color }}
-            >
-              {meta.emoji}
-            </div>
+            <IconBadge Icon={poiIcon(poi.type).Icon} tone={poiIcon(poi.type).tone} size="lg" />
             <div className="flex-1 min-w-0">
               <div className="text-xl font-extrabold tracking-normal">{poi.name}</div>
               <div className="text-sm text-ink-500 font-semibold mt-0.5 flex items-center gap-1">

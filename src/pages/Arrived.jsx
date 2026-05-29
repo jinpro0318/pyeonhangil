@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, MapPin, Bell, AlertTriangle } from 'lucide-react'
 import { useVoice } from '../hooks/useVoice'
+import { useHaptics } from '../hooks/useHaptics'
 import { useAppState } from '../hooks/useAppState'
 import { endTrip, getActiveTrip } from '../services/tripStore'
 import { formatDistance } from '../utils/geo'
@@ -10,6 +11,7 @@ import { Button } from '../components/ui/button'
 export default function Arrived() {
   const navigate = useNavigate()
   const { speak } = useVoice()
+  const { vibrate } = useHaptics()
   const { state } = useAppState()
   const destination = state.destination?.name || '목적지'
 
@@ -27,6 +29,10 @@ export default function Arrived() {
 
   const distance = finished?.distance || state.activeRoute?.distanceMeters || 0
   const primaryFamily = state.family.find((f) => f.status === 'connected' && f.receiveSOS)
+
+  useEffect(() => {
+    vibrate('arrived')
+  }, [vibrate])
 
   useEffect(() => {
     if (primaryFamily) {
@@ -69,7 +75,7 @@ export default function Arrived() {
             <div className="text-3xl font-extrabold tracking-tighter text-success-600">
               {distance ? formatDistance(distance) : '—'}
             </div>
-            <div className="text-xs text-ink-500 mt-0.5">걸으셨어요</div>
+            <div className="text-xs text-ink-500 mt-0.5">이동했어요</div>
           </div>
         </div>
       </div>

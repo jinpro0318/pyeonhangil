@@ -33,9 +33,9 @@ const defaultState = {
   ],
   emergencyContacts: [],
   favorites: [
-    { id: 'home', name: '우리 집', emoji: '🏠', address: '서울 종로구 종로 12', lat: 37.5704, lng: 126.9927 },
-    { id: 'hospital', name: '서울대학교병원', emoji: '🏥', address: '서울 종로구 대학로 101', lat: 37.579617, lng: 126.998292 },
-    { id: 'mart', name: '이마트 청계천점', emoji: '🛒', address: '서울 중구 을지로', lat: 37.5663, lng: 126.9977 },
+    { id: 'home', name: '우리 집', emoji: '🏠', icon: 'home', address: '서울 종로구 종로 12', lat: 37.5704, lng: 126.9927 },
+    { id: 'hospital', name: '서울대학교병원', emoji: '🏥', icon: 'hospital', address: '서울 종로구 대학로 101', lat: 37.579617, lng: 126.998292 },
+    { id: 'mart', name: '이마트 청계천점', emoji: '🛒', icon: 'cart', address: '서울 중구 을지로', lat: 37.5663, lng: 126.9977 },
   ],
 }
 
@@ -44,7 +44,7 @@ export const WALK_STATES = {
     id: 'older',
     emoji: '👵',
     name: '고령자',
-    desc: '계단·경사·긴 보행을 줄여 안내해요',
+    desc: '계단·경사를 피하고, 긴 거리는 대중교통으로 나눠 안내해요',
     speed: '0.6~0.8m/초',
     color: 'older',
   },
@@ -52,7 +52,7 @@ export const WALK_STATES = {
     id: 'wheelchair',
     emoji: '♿',
     name: '휠체어·보행기',
-    desc: '엘리베이터·경사로·넓은 길을 우선해요',
+    desc: '엘리베이터·경사로와 저상버스·환승 동선을 우선해요',
     speed: '0.4~0.6m/초',
     color: 'wheelchair',
   },
@@ -60,7 +60,7 @@ export const WALK_STATES = {
     id: 'visual',
     emoji: '🦯',
     name: '시각장애인',
-    desc: '횡단보도·안전한 보행 안내를 강화해요',
+    desc: '횡단보도·승하차 등 안전 안내를 음성으로 강화해요',
     speed: '0.5~0.7m/초',
     color: 'visual',
   },
@@ -68,7 +68,7 @@ export const WALK_STATES = {
     id: 'stroller',
     emoji: '👶',
     name: '유모차 동반',
-    desc: '엘리베이터와 턱이 적은 길을 우선해요',
+    desc: '엘리베이터·턱 없는 길과 타기 쉬운 교통편을 우선해요',
     speed: '0.6~0.8m/초',
     color: 'stroller',
   },
@@ -76,7 +76,7 @@ export const WALK_STATES = {
     id: 'injured',
     emoji: '🩼',
     name: '일시적 부상자',
-    desc: '짧은 보행과 쉴 곳을 우선해요',
+    desc: '짧은 보행과 쉴 곳, 대중교통 이용을 우선해요',
     speed: '0.5~0.7m/초',
     color: 'injured',
   },
@@ -171,11 +171,22 @@ export function AppProvider({ children }) {
     setState((prev) => ({ ...prev, family: prev.family.filter((f) => f.id !== id) }))
   }
 
+  // 초대 토큰으로 가족 연결 수락 → 해당 멤버를 connected 로 등록. 매칭 멤버 반환(없으면 null)
+  const acceptInvite = (token) => {
+    if (!token) return null
+    const member = state.family.find((f) => f.inviteToken === token)
+    if (!member) return null
+    if (member.status !== 'connected') {
+      updateFamily(member.id, { status: 'connected', connectedAt: Date.now() })
+    }
+    return member
+  }
+
   // 즐겨찾기
   const addFavorite = (fav) => {
     setState((prev) => ({
       ...prev,
-      favorites: [...prev.favorites, { id: `fav_${Date.now()}`, emoji: '⭐', ...fav }],
+      favorites: [...prev.favorites, { id: `fav_${Date.now()}`, emoji: '⭐', icon: 'star', ...fav }],
     }))
   }
   const updateFavorite = (id, updates) => {
@@ -223,6 +234,7 @@ export function AppProvider({ children }) {
         addFamily,
         updateFamily,
         removeFamily,
+        acceptInvite,
         addFavorite,
         updateFavorite,
         removeFavorite,

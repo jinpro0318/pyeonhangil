@@ -77,7 +77,7 @@ export default function Login() {
       <div className="flex-1 overflow-y-auto px-7 pt-12 pb-8 flex flex-col">
         <div className="grid place-items-center mb-6">
           <img
-            src="/pyeonhangil_icon_clean_edge_20260521.png"
+            src="/pyeonhangil_icon_clean_high.png"
             alt="편한길"
             width="120" height="120"
             className="object-contain drop-shadow-xl"

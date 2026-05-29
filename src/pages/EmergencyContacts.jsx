@@ -5,6 +5,7 @@ import PageHeader from '../components/PageHeader'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { cn } from '@/lib/utils'
+import { IconBadge } from '@/lib/catalog'
 
 const RELATIONS = ['딸', '아들', '배우자', '형제', '자매', '친구', '이웃', '기타']
 
@@ -111,7 +112,7 @@ export default function EmergencyContacts() {
 
         {!showForm && contacts.length === 0 && (
           <div className="py-12 flex flex-col items-center text-center text-ink-500">
-            <div className="text-5xl mb-3 opacity-60">📞</div>
+            <IconBadge Icon={Phone} tone="danger" size="2xl" className="mb-3 opacity-90" />
             <div className="text-[17px] font-bold text-ink-700 mb-1.5">등록된 연락처가 없어요</div>
             <div className="text-sm leading-relaxed">
               긴급 상황 때 빠르게 도움받을 수 있도록<br />

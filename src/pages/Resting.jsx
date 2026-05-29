@@ -73,8 +73,8 @@ export default function Resting() {
           <Armchair className="w-14 h-14 text-success-600" strokeWidth={2} />
         </div>
 
-        <div className="text-xs font-bold text-success-600 bg-white px-3 py-1.5 rounded-full mb-3">
-          📍 GPS로 인식했어요
+        <div className="inline-flex items-center gap-1 text-xs font-bold text-success-600 bg-white px-3 py-1.5 rounded-full mb-3">
+          <MapPin className="w-3.5 h-3.5" /> GPS로 인식했어요
         </div>
         <h1 className="text-3xl font-extrabold tracking-tighter text-ink-900 mb-3">
           쉬고 계시네요

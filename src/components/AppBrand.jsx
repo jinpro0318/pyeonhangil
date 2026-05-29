@@ -1,26 +1,37 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { LogIn } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
 
 export default function AppBrand() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   if (location.pathname !== '/home') return null
 
-  const handleClick = () => {
-    if (location.pathname !== '/home') navigate('/home')
-  }
-
   return (
-    <button
-      onClick={handleClick}
-      aria-label="편한길 홈으로 이동"
-      className="absolute top-2 left-2 z-[200] grid place-items-center transition-transform hover:scale-105 active:scale-95 bg-transparent border-0 p-0"
-    >
-      <img
-        src="/pyeonhangil_icon_clean_edge_20260521.png"
-        alt="편한길"
-        className="w-12 h-12 object-contain"
-      />
-    </button>
+    <header className="flex items-center justify-between px-4 h-14 flex-shrink-0 bg-white">
+      <button
+        type="button"
+        aria-label="편한길"
+        className="flex items-center gap-1.5 bg-transparent border-0 p-0 active:scale-95"
+      >
+        <img
+          src="/pyeonhangil_icon_clean.png"
+          alt=""
+          className="w-10 h-10 object-contain"
+        />
+        <span className="text-[17px] font-extrabold text-ink-900 tracking-tight">편한길</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => navigate(user ? '/my' : '/login', { state: { from: '/home' } })}
+        className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-white px-3 py-2 text-xs font-extrabold text-primary shadow-sm active:scale-95 min-h-[40px]"
+      >
+        <LogIn className="w-3.5 h-3.5" />
+        {user ? '내 정보' : '로그인/회원가입'}
+      </button>
+    </header>
   )
 }

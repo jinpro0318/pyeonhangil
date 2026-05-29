@@ -1,4 +1,4 @@
-import { Check, LogOut, ShieldCheck, Type } from 'lucide-react'
+import { Check, LogOut, ShieldCheck, Type, Lightbulb } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAppState, FONT_SIZES } from '../hooks/useAppState'
 import { useAuth } from '../hooks/useAuth'
@@ -80,8 +80,8 @@ export default function Settings() {
           })}
         </div>
 
-        <div className="mt-6 p-3.5 bg-white border border-accent-50 rounded-xl text-sm text-ink-700 leading-relaxed shadow-sm">
-          💡 이 설정은 모든 화면에 바로 적용돼요
+        <div className="mt-6 p-3.5 bg-white border border-accent-50 rounded-xl text-sm text-ink-700 leading-relaxed shadow-sm flex items-center gap-2">
+          <Lightbulb className="w-4 h-4 text-accent shrink-0" /> 이 설정은 모든 화면에 바로 적용돼요
         </div>
 
         {user && (

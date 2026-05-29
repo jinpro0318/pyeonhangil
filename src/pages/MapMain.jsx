@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Database, Mic, MapPin, Search, ShieldCheck, X } from 'lucide-react'
+import { Mic, MapPin, Map, Search, ShieldCheck, X } from 'lucide-react'
 import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useGPS } from '../hooks/useGPS'
 import { POI_TYPES } from '../data/pois'
 import { fetchPois } from '../services/poiApi'
+import { getActiveFacilities, reportToPoi } from '../services/reportsStore'
 import TabBar from '../components/TabBar'
 import SOSButton from '../components/SOSButton'
 import PoiDetailCard from '../components/PoiDetailCard'
 import { Button } from '../components/ui/button'
+import { poiIcon, TONES } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 
 const FILTERS = ['rest', 'toilet', 'elev', 'cross', 'hospital', 'pharmacy', 'subway', 'public']
@@ -29,8 +31,16 @@ export default function MapMain() {
   const [loading, setLoading] = useState(false)
 
   const { position, start, isTracking } = useGPS({ enableStayDetection: false })
+  const [userFacilities, setUserFacilities] = useState(() => getActiveFacilities())
 
   useEffect(() => { start() }, [start])
+
+  // 다른 화면에서 편의시설 제보가 추가되면 포커스 복귀 시 갱신
+  useEffect(() => {
+    const onFocus = () => setUserFacilities(getActiveFacilities())
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [])
 
   const fetchKey = useMemo(
     () => `${activeFilter || 'all'}|${JSON.stringify(quantize(position))}`,
@@ -47,8 +57,16 @@ export default function MapMain() {
     return () => { cancelled = true }
   }, [fetchKey])
 
+  // 사용자 제보 편의시설을 서버 POI 와 합침 (필터 적용)
+  const mergedPois = useMemo(() => {
+    const facilityPois = userFacilities
+      .map(reportToPoi)
+      .filter((p) => !activeFilter || p.type === activeFilter)
+    return [...pois, ...facilityPois]
+  }, [pois, userFacilities, activeFilter])
+
   const { isReady, error, setCenter } = useKakaoMap(mapRef, {
-    pois,
+    pois: mergedPois,
     center: position,
     myLocation: isTracking ? position : null,
     onPoiClick: (poi) => setSelectedPoi(poi),
@@ -70,7 +88,7 @@ export default function MapMain() {
           )}
           {error && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center bg-white">
-              <div className="text-4xl">🗺️</div>
+              <Map className="w-10 h-10 text-ink-400" />
               <div className="text-lg font-extrabold">지도를 불러올 수 없어요</div>
               <div className="text-sm text-ink-500">{error}</div>
               <Button onClick={() => window.location.reload()} className="mt-2">
@@ -81,7 +99,7 @@ export default function MapMain() {
         </div>
 
         {/* 검색바 */}
-        <div className="absolute top-3.5 left-14 right-3.5 bg-white rounded-xl p-2 pl-3 flex items-center gap-2.5 shadow-md border border-ink-200 z-20">
+        <div className="absolute top-3.5 left-3.5 right-3.5 bg-white rounded-xl p-2 pl-3 flex items-center gap-2.5 shadow-md border border-ink-200 z-20">
           <button
             onClick={() => navigate('/search?mode=text')}
             className="flex-1 flex items-center gap-2.5 py-2.5 text-[15px] text-ink-500 font-semibold text-left"
@@ -98,30 +116,14 @@ export default function MapMain() {
           </button>
         </div>
 
-        <div className="absolute top-[76px] left-3.5 right-3.5 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-md border border-ink-200 z-20">
-          <div className="flex items-start gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-primary-50 text-primary grid place-items-center flex-shrink-0 border border-primary-100">
-              <Database className="w-[18px] h-[18px]" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[13px] font-extrabold text-ink-900">
-                공공데이터와 제보를 한 지도에서 확인
-              </div>
-              <div className="text-[11px] font-semibold text-ink-500 mt-0.5 break-keep">
-                쉼터, 화장실, 엘리베이터, 횡단보도 정보를 근처 기준으로 모아 보여줍니다.
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* 내 위치 버튼 */}
         {isReady && (
           <button
             onClick={handleRecenter}
             aria-label="내 위치로 이동"
-            className="absolute right-3.5 bottom-[210px] w-12 h-12 bg-white rounded-xl shadow-md border border-ink-200 z-20 grid place-items-center active:scale-95"
+            className="absolute right-3.5 bottom-[210px] w-14 h-14 min-h-[56px] bg-primary rounded-full shadow-md z-20 grid place-items-center active:scale-95"
           >
-            <MapPin className="w-[22px] h-[22px] text-primary" />
+            <MapPin className="w-[22px] h-[22px] text-white" />
           </button>
         )}
 
@@ -134,8 +136,8 @@ export default function MapMain() {
             </div>
             {loading ? (
               <Pill>불러오는 중...</Pill>
-            ) : pois.length > 0 ? (
-              <Pill>{pois.length}곳 찾음</Pill>
+            ) : mergedPois.length > 0 ? (
+              <Pill>{mergedPois.length}곳 찾음</Pill>
             ) : activeFilter ? (
               <Pill tone="warning">근처에 없어요</Pill>
             ) : null}
@@ -154,17 +156,17 @@ export default function MapMain() {
               const type = POI_TYPES[t]
               if (!type) return null
               const active = activeFilter === t
+              const { Icon, tone } = poiIcon(t)
               return (
                 <button
                   key={t}
                   onClick={() => setActiveFilter(active ? null : t)}
                   className={cn(
                     'px-3 py-2.5 rounded-lg flex flex-col items-center gap-0.5 text-[11px] font-bold flex-shrink-0 min-w-[64px] transition-all active:scale-95 border',
-                    active ? 'text-white border-transparent shadow-sm' : 'bg-white border-ink-200 text-ink-700 hover:bg-ink-50'
+                    active ? cn(TONES[tone].solid, 'border-transparent shadow-sm') : 'bg-white border-ink-200 text-ink-700 hover:bg-ink-50'
                   )}
-                  style={active ? { background: type.color } : {}}
                 >
-                  <span className="text-lg">{type.emoji}</span>
+                  <Icon className={cn('w-[18px] h-[18px]', active ? 'text-white' : TONES[tone].line)} strokeWidth={2.2} />
                   <span>{type.label}</span>
                 </button>
               )

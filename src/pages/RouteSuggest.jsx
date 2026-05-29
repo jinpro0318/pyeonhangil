@@ -1,20 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
-  ChevronLeft, AlertTriangle, Check, X as XIcon,
+  ChevronLeft, AlertTriangle, Check, X as XIcon, Map,
   Armchair, Bus, Database, Footprints, ShieldCheck, Train,
 } from 'lucide-react'
 import { useAppState, WALK_STATES } from '../hooks/useAppState'
-import { useVoice } from '../hooks/useVoice'
+import { useVoice, useAutoAnnounce } from '../hooks/useVoice'
+import { useHaptics } from '../hooks/useHaptics'
 import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useGPS } from '../hooks/useGPS'
 import { fetchRoute } from '../services/routeApi'
 import { fetchPoisInBbox } from '../services/poiApi'
 import { bboxFromCoords, formatDistance, estimateMinutes, minDistanceToPolyline } from '../utils/geo'
+import { pickRestStops } from '../utils/routeRest'
 import { POI_TYPES } from '../data/pois'
 import { getActiveReports, reportToPoi, REPORT_TYPES } from '../services/reportsStore'
 import PoiDetailCard from '../components/PoiDetailCard'
 import { Button } from '../components/ui/button'
+import { IconBadge, poiIcon, hazardIcon, walkIcon, TONES } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 
 const SERVICE_TYPES = ['rest', 'toilet', 'elev', 'ramp', 'cross']
@@ -56,6 +59,7 @@ export default function RouteSuggest() {
   const mapRef = useRef(null)
   const { state, setDestination, setActiveRoute } = useAppState()
   const { speak } = useVoice()
+  const { vibrate } = useHaptics()
   const { position, hasPosition, error: gpsError, start } = useGPS({ enableStayDetection: false })
 
   const initialDestination = location.state?.destination ||
@@ -106,9 +110,19 @@ export default function RouteSuggest() {
     return () => window.removeEventListener('focus', onFocus)
   }, [])
 
-  const nearbyReports = route?.coords?.length
-    ? reports.filter((r) => minDistanceToPolyline(r, route.coords) <= ROUTE_RADIUS_METERS)
+  // 경로 위 위험 제보만 추출 (편의시설은 위험이 아니므로 제외)
+  const nearbyHazards = route?.coords?.length
+    ? reports.filter(
+        (r) =>
+          (r.category || 'hazard') === 'hazard' &&
+          minDistanceToPolyline(r, route.coords) <= ROUTE_RADIUS_METERS
+      )
     : []
+  const nearbyReports = nearbyHazards
+
+  useEffect(() => {
+    if (nearbyReports.length > 0) vibrate('warning')
+  }, [nearbyReports.length, vibrate])
 
   useEffect(() => {
     if (activeField !== 'origin') return
@@ -145,6 +159,11 @@ export default function RouteSuggest() {
       setRoutePois(filtered.slice(0, 40))
     })
   }, [route])
+
+  const restStops = useMemo(
+    () => pickRestStops(route?.coords, routePois, { walkState: walk.id }),
+    [route?.coords, routePois, walk.id]
+  )
 
   const polylines = route?.coords?.length > 1
     ? [{ path: route.coords, color: '#3182F6', weight: 7, opacity: 0.85 }] : []
@@ -185,6 +204,14 @@ export default function RouteSuggest() {
     }
     // eslint-disable-next-line
   }, [route])
+
+  const restCountForSummary = routePois.filter((p) => p.type === 'rest').length
+  useAutoAnnounce(
+    route
+      ? `${destination.name}까지 ${minutes}분, 쉬어갈 곳 ${restCountForSummary}곳이에요. ` +
+        `이 길로 가시려면 화면 아래 큰 버튼을 누르세요.`
+      : '경로를 찾고 있어요'
+  )
 
   const handleStart = () => {
     setDestination(destination)
@@ -249,46 +276,71 @@ export default function RouteSuggest() {
           </div>
         )}
 
-        {/* 경로 위 제보 경고 */}
-        {nearbyReports.length > 0 && (
-          <div className="bg-warning-50 border border-warning/30 rounded-xl p-4 mb-4 flex items-center gap-3">
-            <AlertTriangle className="w-6 h-6 text-warning flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-bold text-ink-900">
-                이 경로에 제보 {nearbyReports.length}건이 있어요
+        {/* 경로 위 위험 제보 경고 — 강조 버전 */}
+        {nearbyHazards.length > 0 && (
+          <div className="bg-warning-50 border-2 border-warning rounded-xl p-4 mb-4 shadow-warning animate-fade-in">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-warning text-white grid place-items-center flex-shrink-0">
+                <AlertTriangle className="w-6 h-6" strokeWidth={2.5} />
               </div>
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
-                {nearbyReports.slice(0, 3).map((r) => {
-                  const meta = REPORT_TYPES[r.type] || REPORT_TYPES.other
-                  return (
-                    <span key={r.id} className="text-xs font-bold bg-white px-2 py-0.5 rounded-full">
-                      {meta.emoji} {meta.label}
-                    </span>
-                  )
-                })}
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-extrabold text-ink-900">
+                  이 경로에 위험 {nearbyHazards.length}건이 있어요
+                </div>
+                <div className="text-xs text-ink-700 font-semibold mt-0.5 leading-relaxed break-keep">
+                  조심해서 지나가시거나, 시간 여유가 있으면 다른 길을 검토해 보세요
+                </div>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {nearbyHazards.slice(0, 4).map((r) => {
+                    const meta = REPORT_TYPES[r.type] || REPORT_TYPES.other
+                    const { Icon, tone } = hazardIcon(r.type)
+                    return (
+                      <span key={r.id} className="inline-flex items-center gap-1 text-xs font-extrabold bg-white border border-warning/40 px-2 py-0.5 rounded-full">
+                        <Icon className={cn('w-3.5 h-3.5', TONES[tone].line)} /> {meta.label}
+                      </span>
+                    )
+                  })}
+                  {nearbyHazards.length > 4 && (
+                    <span className="text-xs font-bold text-warning">+{nearbyHazards.length - 4}</span>
+                  )}
+                </div>
               </div>
             </div>
-            <Button size="sm" variant="secondary" onClick={() => navigate('/community')}>
-              상세
-            </Button>
+            {nearbyHazards.some((r) => r.photoUrl) && (
+              <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
+                {nearbyHazards.filter((r) => r.photoUrl).slice(0, 4).map((r) => (
+                  <img
+                    key={r.id}
+                    src={r.photoUrl}
+                    alt=""
+                    className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-warning/30"
+                  />
+                ))}
+              </div>
+            )}
+            <div className="flex justify-end mt-3">
+              <Button size="sm" variant="secondary" onClick={() => navigate('/community')}>
+                상세 보기
+              </Button>
+            </div>
           </div>
         )}
 
         {/* 지도 */}
         <div ref={mapRef} className="route-map h-[260px] bg-ink-50 rounded-xl overflow-hidden relative mb-4 border border-ink-200 shadow-sm">
           {!isMapReady && !mapError && (
-            <div className="absolute inset-0 flex items-center justify-center text-sm text-ink-500 font-semibold">
-              🗺️ 지도를 불러오는 중…
+            <div className="absolute inset-0 flex items-center justify-center gap-1.5 text-sm text-ink-500 font-semibold">
+              <Map className="w-4 h-4" /> 지도를 불러오는 중…
             </div>
           )}
           {isMapReady && (!route || isRouting) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/80 text-sm text-ink-500 font-semibold">
-              🗺️ 편한 길을 그리고 있어요…
+            <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-white/80 text-sm text-ink-500 font-semibold">
+              <Map className="w-4 h-4" /> 편한 길을 그리고 있어요…
             </div>
           )}
           {mapError && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center bg-white">
-              <div className="text-base font-bold">🗺️ 지도를 불러올 수 없어요</div>
+              <div className="text-base font-bold inline-flex items-center gap-1.5"><Map className="w-4 h-4" /> 지도를 불러올 수 없어요</div>
               <div className="text-xs text-ink-500">{mapError}</div>
             </div>
           )}
@@ -299,18 +351,16 @@ export default function RouteSuggest() {
           <div className="bg-white border border-ink-200 rounded-xl p-4 mb-4 shadow-sm">
             <div className="text-[13px] font-bold text-ink-500 mb-2">경로 주변 시설</div>
             <div className="flex gap-2 overflow-x-auto no-scrollbar">
-              {legend.map((l) => (
-                <div key={l.type} className="flex items-center gap-1.5 bg-white border border-ink-200 px-2.5 py-1.5 rounded-full flex-shrink-0">
-                  <span
-                    className="w-5 h-5 rounded-full grid place-items-center text-[11px] flex-shrink-0"
-                    style={{ background: l.color + '22', color: l.color }}
-                  >
-                    {l.emoji}
-                  </span>
-                  <span className="text-sm font-bold">{l.label}</span>
-                  <span className="text-xs text-ink-500 font-semibold">{l.count}</span>
-                </div>
-              ))}
+              {legend.map((l) => {
+                const { Icon, tone } = poiIcon(l.type)
+                return (
+                  <div key={l.type} className="flex items-center gap-1.5 bg-white border border-ink-200 px-2.5 py-1.5 rounded-full flex-shrink-0">
+                    <IconBadge Icon={Icon} tone={tone} size="xs" className="w-5 h-5 rounded-full [&_svg]:w-3 [&_svg]:h-3" />
+                    <span className="text-sm font-bold">{l.label}</span>
+                    <span className="text-xs text-ink-500 font-semibold">{l.count}</span>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
@@ -375,10 +425,10 @@ export default function RouteSuggest() {
           )}
         </div>
 
-        {/* 추천 경로 카드 */}
-        <div className="bg-white border border-primary/20 rounded-xl p-5 mb-4 shadow-md">
-          <span className="inline-block text-[11px] font-extrabold text-primary bg-primary-50 px-2.5 py-1 rounded-full mb-2">
-            이동 부담 기준 추천
+        {/* 추천 경로 카드 (선택된 경로) */}
+        <div className="bg-white border-2 border-primary rounded-xl p-5 mb-4 shadow-md">
+          <span className="inline-block text-[11px] font-extrabold text-white bg-success px-2.5 py-1 rounded-full mb-2">
+            배리어프리 가능
           </span>
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-5xl font-extrabold tracking-tighter text-primary">{minutes}</span>
@@ -388,7 +438,8 @@ export default function RouteSuggest() {
             )}
           </div>
           <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold mt-1', WALK_CHIP[walk.id])}>
-            {walk.emoji} {walk.name} · 교통약자 유형 맞춤
+            {(() => { const { Icon } = walkIcon(walk.id); return <Icon className="w-3.5 h-3.5" strokeWidth={2.4} /> })()}
+            {walk.name} · 교통약자 유형 맞춤
           </span>
           <div className="mt-4 space-y-2 text-sm">
             <Feature>
@@ -411,11 +462,31 @@ export default function RouteSuggest() {
             <Feature>공공데이터와 사용자 제보를 함께 반영</Feature>
             <Feature>실시간 GPS와 음성으로 안내</Feature>
           </div>
+
+          {restStops.length > 0 && (
+            <div className="bg-success-50 border border-success/20 rounded-xl p-4 mt-3">
+              <div className="font-bold text-success-600 mb-2 flex items-center gap-1.5">
+                <Armchair className="w-4 h-4" /> 권장 휴식 {restStops.length}곳 (이동 부담 줄이기)
+              </div>
+              <div className="space-y-1.5 text-sm">
+                {restStops.map((s) => (
+                  <div key={s.id} className="flex justify-between">
+                    <span className="font-bold">{s.name}</span>
+                    <span className="text-ink-500">{Math.round(s.distanceFromStart)}m 지점</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="pt-2 pb-6 flex-shrink-0">
-        <Button size="xl" className="w-full" onClick={handleStart}>
+        <Button
+          size="xl"
+          className="w-full bg-primary hover:bg-primary/90 min-h-[52px] rounded-xl"
+          onClick={handleStart}
+        >
           이 길로 갈게요
         </Button>
       </div>

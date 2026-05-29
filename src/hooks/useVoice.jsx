@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useAppState } from './useAppState'
 
 const spokenOnce = new Set()
 const recentSpeech = new Map()
@@ -108,10 +109,57 @@ export function useVoice() {
     setIsSpeaking(false)
   }, [])
 
-  // 페이지 이동 시 자동 정리
   useEffect(() => {
     return () => stop()
   }, [stop])
 
   return { speak, stop, isSpeaking, isSupported }
+}
+
+/**
+ * 페이지 진입 시 자동 음성 안내
+ * - 시각장애 사용자(walkState === 'visual')일 때만 발음
+ * - 일반 사용자는 무음
+ */
+export function useAutoAnnounce(text, options = {}) {
+  const { state } = useAppState()
+  const { speak } = useVoice()
+
+  useEffect(() => {
+    if (!text) return
+    const isVisualUser = state.user.walkState === 'visual'
+    if (!isVisualUser && !options.force) return
+    const t = setTimeout(() => {
+      speak(text, {
+        onceKey: `auto-announce:${text.slice(0, 30)}`,
+        rate: 0.9,
+      })
+    }, 100)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line
+  }, [text])
+}
+
+/**
+ * ARIA Live Region — 화면 리더기가 즉시 읽도록 강제
+ */
+export function AnnounceLive({ text, level = 'polite' }) {
+  return (
+    <div
+      role="status"
+      aria-live={level}
+      aria-atomic="true"
+      style={{
+        position: 'absolute',
+        width: 1, height: 1,
+        padding: 0, margin: -1,
+        overflow: 'hidden',
+        clip: 'rect(0,0,0,0)',
+        whiteSpace: 'nowrap',
+        border: 0,
+      }}
+    >
+      {text}
+    </div>
+  )
 }

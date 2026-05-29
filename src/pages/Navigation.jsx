@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { useGPS } from '../hooks/useGPS'
 import { useVoice } from '../hooks/useVoice'
+import { useHaptics } from '../hooks/useHaptics'
 import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useAppState, WALK_STATES } from '../hooks/useAppState'
 import { fetchPois, fetchPoisInBbox } from '../services/poiApi'
@@ -32,6 +33,7 @@ export default function Navigation() {
   const mapRef = useRef(null)
   const { state, setActiveRoute } = useAppState()
   const { speak, isSpeaking } = useVoice()
+  const { vibrate } = useHaptics()
   const { position, speedMeterPerMin, isStaying, isTracking, hasPosition, start } = useGPS({
     stayThresholdSeconds: 180,
   })
@@ -86,6 +88,7 @@ export default function Navigation() {
     if (announcedRef.current) return
     if (!route && distanceMeters === 0) return
     announcedRef.current = true
+    vibrate('tap')
     speak(`${destName}까지 ${remainingTime}분 남았어요. 안전하게 천천히 가세요`, {
       onceKey: `navigation-start:${destName}`,
     })
@@ -120,8 +123,8 @@ export default function Navigation() {
       {/* 지도 영역 */}
       <div className="relative h-[36vh] bg-ink-50 nav-map flex-shrink-0 border-b border-ink-200" ref={mapRef}>
         {!mapReady && !mapError && (
-          <div className="absolute inset-0 grid place-items-center text-sm text-ink-500 font-semibold">
-            🗺️ 지도 불러오는 중...
+          <div className="absolute inset-0 flex items-center justify-center gap-1.5 text-sm text-ink-500 font-semibold">
+            <MapPin className="w-4 h-4" /> 지도 불러오는 중...
           </div>
         )}
         {mapError && (

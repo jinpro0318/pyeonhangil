@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 const TABS = [
   { path: '/home', label: '홈', Icon: Home },
   { path: '/map', label: '지도', Icon: Map },
-  { path: '/community', label: '길 제보', Icon: MessagesSquare },
+  { path: '/community', label: '커뮤니티', Icon: MessagesSquare },
   { path: '/family', label: '가족', Icon: Users },
   { path: '/my', label: '마이', Icon: User },
 ]
@@ -26,8 +26,8 @@ export default function TabBar() {
             key={path}
             onClick={() => navigate(path)}
             className={cn(
-              'flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[62px] transition-colors relative',
-              active ? 'text-primary bg-primary-50/70' : 'text-ink-400 hover:text-ink-700 hover:bg-ink-50'
+              'flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] transition-colors relative',
+              active ? 'text-primary bg-primary/10' : 'text-ink-500 hover:text-ink-900 hover:bg-ink-50'
             )}
             aria-label={label}
             aria-current={active ? 'page' : undefined}

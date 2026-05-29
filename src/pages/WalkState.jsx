@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Check, MapPin } from 'lucide-react'
 import { useAppState, WALK_STATES } from '../hooks/useAppState'
 import { Button } from '../components/ui/button'
+import { IconBadge, walkIcon } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 
 const WALK_BG = {
@@ -33,30 +34,30 @@ export default function WalkState() {
           어떤 이동 지원이<br />필요하신가요?
         </h1>
         <p className="text-base text-ink-500 font-semibold leading-relaxed">
-          교통약자 유형에 맞춰<br />길과 편의시설을 우선 안내해요
+          교통약자 유형에 맞춰<br />걷는 길과 대중교통을 함께 안내해요
         </p>
       </div>
 
       <div className="space-y-3 flex-1">
         {Object.values(WALK_STATES).map((opt) => {
           const sel = selected === opt.id
+          const { Icon, tone } = walkIcon(opt.id)
           return (
             <button
               key={opt.id}
               onClick={() => setSelected(opt.id)}
+              aria-pressed={sel}
               className={cn(
-                'w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left active:scale-[0.99] shadow-sm',
-                sel ? WALK_BG[opt.id] : 'bg-white border-ink-200'
+                'w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left active:scale-[0.99]',
+                sel ? `${WALK_BG[opt.id]} shadow-md` : 'bg-white border-ink-200/70 shadow-sm'
               )}
             >
-              <div className="w-14 h-14 rounded-lg bg-white grid place-items-center text-3xl flex-shrink-0 border border-ink-200">
-                {opt.emoji}
-              </div>
+              <IconBadge Icon={Icon} tone={tone} variant={sel ? 'solid' : 'soft'} size="lg" />
               <div className="flex-1">
-                <div className="text-[17px] font-bold">{opt.name}</div>
-                <div className="text-sm text-ink-500 mt-0.5">{opt.desc}</div>
+                <div className="text-[17px] font-extrabold">{opt.name}</div>
+                <div className="text-sm text-ink-500 mt-0.5 leading-snug">{opt.desc}</div>
               </div>
-              <div className={cn('w-7 h-7 rounded-full grid place-items-center flex-shrink-0', sel ? 'bg-primary text-white' : 'bg-ink-200/0')}>
+              <div className={cn('w-7 h-7 rounded-full grid place-items-center flex-shrink-0 transition-colors', sel ? 'bg-primary text-white' : 'border-2 border-ink-200')}>
                 {sel && <Check className="w-4 h-4" strokeWidth={3} />}
               </div>
             </button>

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Phone, Users, Armchair } from 'lucide-react'
+import { Phone, Users, Armchair, AlertTriangle } from 'lucide-react'
 import { useVoice } from '../hooks/useVoice'
 import { useAppState } from '../hooks/useAppState'
 
@@ -90,10 +90,14 @@ export default function SOS() {
         />
       </div>
 
-      <div className="text-center text-sm opacity-85 font-semibold">
-        {primaryContact
-          ? '가족이 지금 어디 계신지 알 수 있어요'
-          : '⚠️ 긴급 연락처를 먼저 등록해주세요'}
+      <div className="flex items-center justify-center gap-1.5 text-center text-sm opacity-85 font-semibold">
+        {primaryContact ? (
+          '가족이 지금 어디 계신지 알 수 있어요'
+        ) : (
+          <>
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" /> 긴급 연락처를 먼저 등록해주세요
+          </>
+        )}
       </div>
 
       <button

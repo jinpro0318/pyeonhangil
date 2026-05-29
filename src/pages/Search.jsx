@@ -164,8 +164,8 @@ export default function Search() {
           </div>
 
           <div className="bg-white border border-primary-100 rounded-xl px-6 py-5 w-full text-center mb-6 shadow-sm">
-            <div className="text-xs font-bold text-primary-700 mb-1">
-              {isListening ? '🎙 듣고 있어요' : '듣는 중이에요'}
+            <div className="text-xs font-bold text-primary-700 mb-1 inline-flex items-center gap-1 justify-center">
+              {isListening ? <><Mic className="w-3.5 h-3.5" /> 듣고 있어요</> : '듣는 중이에요'}
             </div>
             <div className="text-lg font-bold text-ink-900">
               {transcript || (isSearching ? '찾는 중…' : '"서울대병원까지 편한 길"')}

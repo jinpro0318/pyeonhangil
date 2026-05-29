@@ -7,33 +7,58 @@ export default {
         sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
       },
       colors: {
+        // DESIGN_SYSTEM.md 기준 — Primary Blue #1A8FE3
         primary: {
-          50: '#EFF6FF',
-          100: '#DBEAFE',
-          200: '#BFDBFE',
-          300: '#93C5FD',
-          400: '#60A5FA',
-          500: '#2563EB',
-          600: '#1D4ED8',
-          700: '#1E40AF',
-          800: '#1E3A8A',
-          DEFAULT: '#2563EB',
+          50: '#EAF6FE',
+          100: '#C7E6FB',
+          200: '#A0D3F8',
+          300: '#6EB9F0',
+          400: '#3D9FE7',
+          500: '#1A8FE3',
+          600: '#1576BB',
+          700: '#105D93',
+          800: '#0B446B',
+          DEFAULT: '#1A8FE3',
           foreground: '#FFFFFF',
         },
         ink: {
-          50: '#F8FAFC',
-          100: '#F1F5F9',
-          200: '#E2E8F0',
-          300: '#CBD5E1',
-          400: '#94A3B8',
-          500: '#64748B',
-          700: '#334155',
-          900: '#0F172A',
+          50: '#F4F7FA',
+          100: '#E7ECF1',
+          200: '#D4DCE4',
+          300: '#B0BBC7',
+          400: '#8593A2',
+          500: '#5A7080',       // Text Secondary
+          700: '#2F4456',
+          900: '#1A2B3C',       // Text Primary
         },
-        success: { 50: '#ECFDF5', 500: '#10B981', 600: '#059669', DEFAULT: '#10B981' },
-        warning: { 50: '#FFFBEB', 500: '#D97706', DEFAULT: '#D97706' },
+        // Success Green #3EBE6E (배리어프리 가능 / 엘리베이터 / 경사로)
+        success: {
+          50: '#ECFAF1',
+          100: '#C8F2D7',
+          500: '#3EBE6E',
+          600: '#319B58',
+          700: '#257842',
+          DEFAULT: '#3EBE6E',
+        },
+        // Warning Orange #E85D24 (계단 / 장벽 / 접근 불가)
+        warning: {
+          50: '#FCE9E0',
+          100: '#F9D0BD',
+          500: '#E85D24',
+          600: '#C84A19',
+          700: '#A23B13',
+          DEFAULT: '#E85D24',
+        },
         danger: { 50: '#FEF2F2', 500: '#DC2626', 600: '#B91C1C', DEFAULT: '#DC2626' },
-        accent: { 50: '#F5F3FF', 500: '#7C3AED', DEFAULT: '#7C3AED' },
+        // Accent Teal #2CC6A0 (선택 상태 / 포커스 링)
+        accent: {
+          50: '#E5F8F2',
+          100: '#BFEFE0',
+          500: '#2CC6A0',
+          600: '#21A283',
+          DEFAULT: '#2CC6A0',
+        },
+        teal: { 50: '#E5F8F2', 500: '#2CC6A0', 600: '#21A283', DEFAULT: '#2CC6A0' },
         // 카테고리·걸음 상태
         cat: {
           rest: '#22C55E',
@@ -57,34 +82,42 @@ export default {
           stroller: '#A855F7',
           'stroller-soft': '#F3E8FF',
         },
-        // shadcn 의미적 토큰
-        border: '#E2E8F0',
-        input: '#E2E8F0',
-        ring: '#2563EB',
-        background: '#F8FAFC',
-        foreground: '#0F172A',
-        muted: { DEFAULT: '#F1F5F9', foreground: '#64748B' },
-        secondary: { DEFAULT: '#FFFFFF', foreground: '#0F172A' },
+        // shadcn 의미적 토큰 — DESIGN_SYSTEM.md 정렬
+        border: '#D4DCE4',
+        input: '#D4DCE4',
+        ring: '#1A8FE3',
+        background: '#EAF6FE',
+        foreground: '#1A2B3C',
+        muted: { DEFAULT: '#F4F7FA', foreground: '#5A7080' },
+        secondary: { DEFAULT: '#FFFFFF', foreground: '#1A2B3C' },
         destructive: { DEFAULT: '#DC2626', foreground: '#FFFFFF' },
-        popover: { DEFAULT: '#FFFFFF', foreground: '#0F172A' },
-        card: { DEFAULT: '#FFFFFF', foreground: '#0F172A' },
+        popover: { DEFAULT: '#FFFFFF', foreground: '#1A2B3C' },
+        card: { DEFAULT: '#FFFFFF', foreground: '#1A2B3C' },
       },
+      // Material 3 Shape Scale (none/xs/sm/md/lg/xl/full) + 디자인 시스템 카드 12px
       borderRadius: {
-        DEFAULT: '8px',
-        md: '8px',
-        lg: '10px',
-        xl: '12px',
-        '2xl': '14px',
-        '3xl': '18px',
+        DEFAULT: '8px',     // chip / button (--radius-chip)
+        xs: '4px',          // M3 xs
+        sm: '8px',          // M3 sm — chip · button
+        md: '12px',         // M3 md — card (--radius-card)
+        lg: '16px',         // M3 lg — surface
+        xl: '12px',         // 호환: 기존 코드 다수가 rounded-xl 사용 (= 카드 12px)
+        '2xl': '20px',      // M3 컨테이너
+        '3xl': '28px',      // M3 xl — large container
       },
+      // Material 3 Elevation (Level 1~5) — 카드/시트/FAB
       boxShadow: {
-        sm: '0 1px 2px rgba(15,23,42,0.04)',
-        DEFAULT: '0 1px 3px rgba(15,23,42,0.08)',
-        md: '0 8px 24px rgba(15,23,42,0.08)',
-        lg: '0 18px 45px rgba(15,23,42,0.10)',
-        xl: '0 28px 70px rgba(15,23,42,0.16)',
-        primary: '0 12px 26px rgba(37,99,235,0.22)',
-        danger: '0 12px 26px rgba(220,38,38,0.20)',
+        sm: '0 1px 2px rgba(26,43,60,0.05)',                                          // M3 Level 1
+        DEFAULT: '0 1px 3px rgba(26,43,60,0.10), 0 1px 2px rgba(26,43,60,0.06)',      // M3 Level 1+
+        md: '0 4px 8px rgba(26,43,60,0.08), 0 2px 4px rgba(26,43,60,0.06)',           // M3 Level 2
+        lg: '0 10px 20px rgba(26,43,60,0.10), 0 4px 8px rgba(26,43,60,0.06)',         // M3 Level 3
+        xl: '0 18px 32px rgba(26,43,60,0.14), 0 8px 16px rgba(26,43,60,0.08)',        // M3 Level 4
+        '2xl': '0 24px 48px rgba(26,43,60,0.18), 0 12px 24px rgba(26,43,60,0.10)',    // M3 Level 5
+        primary: '0 8px 20px rgba(26,143,227,0.30)',                                  // CTA blue glow
+        success: '0 8px 20px rgba(62,190,110,0.28)',                                  // 배리어프리 OK glow
+        warning: '0 8px 20px rgba(232,93,36,0.28)',                                   // 계단/주의 glow
+        danger: '0 8px 20px rgba(220,38,38,0.28)',                                    // SOS glow
+        fab: '0 6px 12px rgba(26,143,227,0.36), 0 2px 4px rgba(26,43,60,0.10)',       // FAB Level 3
       },
       letterSpacing: {
         tighter: '0',

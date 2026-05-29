@@ -30,6 +30,7 @@ import Settings from './pages/Settings'
 import EmergencyContacts from './pages/EmergencyContacts'
 import Favorites from './pages/Favorites'
 import Admin from './pages/Admin'
+import Diagnostics from './pages/Diagnostics'
 import { isAdminEmail } from './lib/admin'
 
 function RequireAdmin({ children }) {
@@ -42,15 +43,12 @@ function RequireAdmin({ children }) {
 }
 
 export default function App() {
-  const location = useLocation()
-  const showBrand = location.pathname === '/home'
-
   return (
     <AuthProvider>
       <AppProvider>
         <div className="app-shell">
           <AppBrand />
-          <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${showBrand ? 'pt-16' : ''}`}>
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <Routes>
               {/* 온보딩 */}
               <Route path="/" element={<Splash />} />
@@ -79,6 +77,9 @@ export default function App() {
               <Route path="/emergency" element={<EmergencyContacts />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
+
+              {/* 개발자 진단 — 카카오/서버 API 연결 상태 */}
+              <Route path="/diagnostics" element={<Diagnostics />} />
 
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

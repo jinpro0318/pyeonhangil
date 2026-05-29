@@ -6,18 +6,19 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /**
- * 카카오 JavaScript 키는 "클라이언트 공개 키"로,
- * 보안은 카카오 콘솔의 Web 도메인 화이트리스트로 보장됩니다.
- * (https://developers.kakao.com 의 앱 설정 → 플랫폼 → Web)
+ * 카카오 JavaScript 키는 "클라이언트 공개 키"이지만, 저장소가 Public 이므로
+ * 폴백을 두지 않고 환경변수에서만 읽습니다. 도메인 화이트리스트로 보호되어도
+ * 폐기된 키를 코드에 남겨두면 회전을 강제하기 어렵습니다.
  *
- * 그래서 Vercel 환경변수가 미설정이어도 동작하도록 폴백을 둡니다.
- * 키를 바꾸려면 .env 의 VITE_KAKAO_JS_KEY 또는 Vercel 환경변수를 우선 사용합니다.
+ * 로컬: .env.local 의 VITE_KAKAO_JS_KEY (또는 KAKAO_JS_KEY)
+ * 배포: Vercel 환경변수의 VITE_KAKAO_JS_KEY
  */
-const KAKAO_JS_KEY_FALLBACK = 'df5e1dc0683b9992c2dd5aea25a9a6af'
-
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const kakaoKey = env.VITE_KAKAO_JS_KEY || env.KAKAO_JS_KEY || KAKAO_JS_KEY_FALLBACK
+  const kakaoKey = env.VITE_KAKAO_JS_KEY || env.KAKAO_JS_KEY || ''
+  if (!kakaoKey) {
+    console.warn('[vite] VITE_KAKAO_JS_KEY 가 비어 있어요. 지도가 로드되지 않습니다.')
+  }
 
   const localApiStatusPlugin = {
     name: 'local-api-status',

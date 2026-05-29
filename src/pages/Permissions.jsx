@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MapPin, Bell, Mic, Check } from 'lucide-react'
 import { Button } from '../components/ui/button'
+import { IconBadge } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 
 export default function Permissions() {
@@ -41,9 +42,9 @@ export default function Permissions() {
   }
 
   const items = [
-    { key: 'location', Icon: MapPin, iconBg: 'bg-primary-50 text-primary', title: '내 위치 알기', desc: '어디 계신지 확인해요', action: requestLocation },
-    { key: 'notify', Icon: Bell, iconBg: 'bg-warning-50 text-warning', title: '알림 받기', desc: '쉴 곳을 알려드려요', action: requestNotify },
-    { key: 'voice', Icon: Mic, iconBg: 'bg-success-50 text-success-600', title: '말로 안내 듣기', desc: '화면 안 봐도 들려드려요', action: requestVoice },
+    { key: 'location', Icon: MapPin, tone: 'primary', title: '내 위치 알기', desc: '어디 계신지 확인해요', action: requestLocation },
+    { key: 'notify', Icon: Bell, tone: 'warning', title: '알림 받기', desc: '쉴 곳을 알려드려요', action: requestNotify },
+    { key: 'voice', Icon: Mic, tone: 'success', title: '말로 안내 듣기', desc: '화면 안 봐도 들려드려요', action: requestVoice },
   ]
 
   return (
@@ -64,9 +65,7 @@ export default function Permissions() {
                 granted ? 'bg-success-50 border-success/30' : 'bg-white border-ink-200'
               )}
             >
-              <div className={cn('w-12 h-12 rounded-lg grid place-items-center flex-shrink-0 border border-current/10', it.iconBg)}>
-                <it.Icon className="w-6 h-6" />
-              </div>
+              <IconBadge Icon={it.Icon} tone={it.tone} size="md" />
               <div className="flex-1 min-w-0">
                 <div className="text-[17px] font-bold">{it.title}</div>
                 <div className="text-sm text-ink-500 mt-0.5">{it.desc}</div>
