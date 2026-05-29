@@ -1,7 +1,5 @@
-import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Phone, Users, Armchair, AlertTriangle } from 'lucide-react'
-import { useVoice } from '../hooks/useVoice'
 import { useAppState } from '../hooks/useAppState'
 
 function formatPhone(raw) {
@@ -14,20 +12,12 @@ function formatPhone(raw) {
 
 export default function SOS() {
   const navigate = useNavigate()
-  const { speak } = useVoice()
   const { state } = useAppState()
 
   const primaryContact =
     state.emergencyContacts[0] ||
     state.family.find((f) => f.status === 'connected' && f.receiveSOS) ||
     null
-
-  useEffect(() => {
-    speak('어떤 도움이 필요하세요? 119 구조, 가족 연락, 가까운 쉼터 중 하나를 선택하세요', {
-      immediate: true,
-      onceKey: 'sos-enter',
-    })
-  }, [speak])
 
   const call119 = () => {
     if (confirm('119에 전화하시겠어요?')) window.location.href = 'tel:119'
@@ -111,15 +101,15 @@ export default function SOS() {
 }
 
 function SosBtn({ Icon, tone, title, sub, onClick }) {
-  const base = 'w-full flex items-center gap-4 p-5 rounded-2xl text-left active:scale-[0.98] transition-all min-h-[80px]'
+  const base = 'w-full flex items-center gap-4 p-5 rounded-2xl text-left active:scale-[0.98] transition-all min-h-[84px]'
   const tones = {
-    primary: 'bg-white text-ink-900 shadow-lg',
+    primary: 'bg-white text-ink-900 shadow-xl',
     outline: 'bg-white/15 border-2 border-white/40 text-white hover:bg-white/20',
   }
   return (
     <button onClick={onClick} className={`${base} ${tones[tone]}`}>
-      <div className={`w-12 h-12 rounded-2xl grid place-items-center flex-shrink-0 ${tone === 'primary' ? 'bg-danger-50 text-danger' : 'bg-white/20'}`}>
-        <Icon className="w-6 h-6" />
+      <div className={`w-14 h-14 rounded-2xl grid place-items-center flex-shrink-0 ${tone === 'primary' ? 'bg-danger-50 text-danger' : 'bg-white/20'}`}>
+        <Icon className="w-7 h-7" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-lg font-extrabold tracking-tight">{title}</div>

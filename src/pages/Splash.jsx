@@ -5,8 +5,6 @@ import { Button } from '../components/ui/button'
 import { useAppState } from '../hooks/useAppState'
 import { IconBadge } from '@/lib/catalog'
 
-const VALID_WALK_STATES = ['older', 'wheelchair', 'visual', 'stroller', 'injured']
-
 export default function Splash() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -16,24 +14,11 @@ export default function Splash() {
 
   useEffect(() => {
     const isDemo = params.get('demo') === '1' || params.get('reset') === '1'
-    const walk = params.get('walk')
 
     if (isDemo) {
       try {
         localStorage.removeItem('pyeonhangil_state')
         localStorage.removeItem('pyeonhangil_onboarded')
-      } catch {}
-    }
-
-    if (walk && VALID_WALK_STATES.includes(walk)) {
-      try {
-        const raw = localStorage.getItem('pyeonhangil_state')
-        const parsed = raw ? JSON.parse(raw) : {}
-        const next = {
-          ...parsed,
-          user: { ...(parsed.user || {}), walkState: walk },
-        }
-        localStorage.setItem('pyeonhangil_state', JSON.stringify(next))
       } catch {}
     }
 
@@ -73,7 +58,7 @@ export default function Splash() {
   const handleNext = () => navigate('/intro', { replace: true })
 
   return (
-    <div className="flex-1 relative flex flex-col items-center justify-center bg-white text-ink-900 animate-fade-in overflow-hidden px-8">
+    <div className="flex-1 relative flex flex-col items-center justify-center bg-gradient-to-b from-white via-white to-primary-50 text-ink-900 animate-fade-in overflow-hidden px-8">
       {isDemo && (
         <div
           className="absolute top-3 left-1/2 -translate-x-1/2 z-20 bg-warning text-white text-[11px] font-extrabold px-3 py-1 rounded-full shadow-md"
@@ -93,9 +78,9 @@ export default function Splash() {
           />
         </div>
         <div className="text-center">
-          <h1 className="text-5xl font-extrabold tracking-normal mb-3">편한길</h1>
-          <p className="text-[17px] text-ink-700 font-bold leading-relaxed">
-            오늘 가시는 길,<br />편하게 함께 갈게요
+          <h1 className="text-5xl font-extrabold tracking-normal mb-4">편한길</h1>
+          <p className="text-[15px] text-ink-500 font-semibold leading-relaxed">
+            당신의 걸음이 더 안전하고 편안하도록
           </p>
         </div>
       </div>

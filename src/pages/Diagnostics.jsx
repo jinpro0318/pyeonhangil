@@ -17,7 +17,7 @@ function Row({ status, label, detail, help }) {
   }[status]
 
   return (
-    <div className={cn('rounded-xl p-3.5 border border-ink-200/80', tone.bg)}>
+    <div className={cn('rounded-xl p-4 border border-black/[0.04] shadow-card', tone.bg)}>
       <div className="flex items-start gap-3">
         <tone.Icon className={cn('w-5 h-5 flex-shrink-0 mt-0.5', tone.color, status === STATUS.LOADING && 'animate-spin')} />
         <div className="min-w-0 flex-1">
@@ -118,7 +118,7 @@ export default function Diagnostics() {
         <button
           onClick={() => navigate(-1)}
           aria-label="뒤로"
-          className="w-10 h-10 rounded-lg bg-white border border-ink-200 grid place-items-center text-ink-700 active:scale-95 shadow-sm"
+          className="w-11 h-11 rounded-xl bg-white border border-black/[0.04] grid place-items-center text-ink-700 active:scale-95 shadow-card"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
@@ -126,7 +126,7 @@ export default function Diagnostics() {
         <button
           onClick={() => setTick((t) => t + 1)}
           aria-label="다시 확인"
-          className="w-10 h-10 rounded-lg bg-white border border-ink-200 grid place-items-center text-primary active:scale-95 shadow-sm"
+          className="w-11 h-11 rounded-xl bg-white border border-black/[0.04] grid place-items-center text-primary active:scale-95 shadow-card"
         >
           <RefreshCw className="w-5 h-5" />
         </button>
@@ -134,7 +134,7 @@ export default function Diagnostics() {
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8 space-y-3">
         {/* 현재 환경 */}
-        <div className="bg-white border border-ink-200 rounded-xl p-4 shadow-sm">
+        <div className="bg-white border border-black/[0.04] rounded-xl p-4 shadow-card">
           <div className="text-[11px] font-extrabold text-ink-500 uppercase tracking-wider mb-2">현재 환경</div>
           <div className="text-sm font-bold text-ink-900 break-all">{origin || '(unknown)'}</div>
           <div className="text-xs text-ink-500 mt-1 font-semibold">
@@ -166,7 +166,7 @@ export default function Diagnostics() {
         />
 
         {/* 미니 지도 미리보기 */}
-        <div className="bg-white border border-ink-200 rounded-xl p-2 shadow-sm">
+        <div className="bg-white border border-black/[0.04] rounded-xl p-2 shadow-card">
           <div className="text-[11px] font-extrabold text-ink-500 uppercase tracking-wider px-2 pt-1 pb-2">지도 미리보기 (서울 시청 좌표)</div>
           <div ref={mapRef} className="h-44 bg-ink-50 rounded-lg relative overflow-hidden">
             {!mapReady && !mapError && (
@@ -219,21 +219,21 @@ export default function Diagnostics() {
         />
 
         {/* 외부 링크 */}
-        <div className="bg-white border border-ink-200 rounded-xl p-4 shadow-sm">
+        <div className="bg-white border border-black/[0.04] rounded-xl p-4 shadow-card">
           <div className="text-[11px] font-extrabold text-ink-500 uppercase tracking-wider mb-2">바로가기</div>
           <div className="grid grid-cols-1 gap-2">
             <a
               href="https://developers.kakao.com"
               target="_blank" rel="noreferrer"
-              className="flex items-center justify-between text-sm font-bold text-primary px-3 py-2.5 rounded-lg bg-primary-50 hover:bg-primary-100"
+              className="flex items-center justify-between gap-2 text-sm font-bold text-primary px-3.5 py-3 min-h-[48px] rounded-xl bg-primary-50 hover:bg-primary-100 active:scale-[0.99] transition-all"
             >
               카카오 개발자 콘솔 (도메인 등록 · JS키 발급)
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-4 h-4 shrink-0" />
             </a>
             <a
               href="https://www.data.go.kr"
               target="_blank" rel="noreferrer"
-              className="flex items-center justify-between text-sm font-bold text-primary px-3 py-2.5 rounded-lg bg-primary-50 hover:bg-primary-100"
+              className="flex items-center justify-between gap-2 text-sm font-bold text-primary px-3.5 py-3 min-h-[48px] rounded-xl bg-primary-50 hover:bg-primary-100 active:scale-[0.99] transition-all"
             >
               data.go.kr (공공데이터 키 발급)
               <ExternalLink className="w-4 h-4" />

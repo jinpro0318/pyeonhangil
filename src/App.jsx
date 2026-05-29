@@ -8,7 +8,6 @@ import Splash from './pages/Splash'
 import Login from './pages/Login'
 import Intro from './pages/Intro'
 import Permissions from './pages/Permissions'
-import WalkState from './pages/WalkState'
 
 // 메인
 import Home from './pages/Home'
@@ -55,7 +54,6 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/intro" element={<Intro />} />
               <Route path="/permissions" element={<Permissions />} />
-              <Route path="/walk-state" element={<WalkState />} />
 
               {/* 메인 */}
               <Route path="/home" element={<Home />} />

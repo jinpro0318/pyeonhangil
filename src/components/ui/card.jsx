@@ -6,19 +6,21 @@ import { cn } from '@/lib/utils'
 // - elevated: 그림자 강조 (CityTrans 추천 카드 / 지도 위 정보)
 // - outlined: 보더만 (정보 그룹)
 // - tonal: 의미색 약한 톤 (배리어프리 / 주의 알림)
+// spec Card — radius 16px, shadow 0 2px 12px rgba(0,0,0,.08)
 const CARD_VARIANTS = {
-  default:  'bg-white border border-ink-200/80 shadow-sm',     // M3 Filled card
-  elevated: 'bg-white border border-ink-200/40 shadow-md',     // M3 Elevated card
-  outlined: 'bg-white border border-ink-300',                  // M3 Outlined card
-  tonal:    'bg-primary-50 border border-primary-100',         // M3 Tonal (primary)
-  success:  'bg-success-50 border border-success/30',          // 배리어프리 OK
-  warning:  'bg-warning-50 border border-warning/30',          // 계단 / 주의
+  default:  'bg-white border border-black/[0.04] shadow-card',  // spec Card
+  elevated: 'bg-white border border-black/[0.04] shadow-md',    // 살짝 더 떠 보이는 카드
+  outlined: 'bg-white border border-ink-200',                   // 보더만
+  tonal:    'bg-primary-50 border border-primary-100',          // 연한 인디고
+  pink:     'bg-pink-50 border border-pink-100',                // 핑크 강조 카드
+  success:  'bg-success-50 border border-success/30',           // 배리어프리 OK
+  warning:  'bg-warning-50 border border-warning/30',           // 계단 / 주의
 }
 
 const Card = React.forwardRef(({ className, variant = 'default', ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('rounded-xl', CARD_VARIANTS[variant] || CARD_VARIANTS.default, className)}
+    className={cn('rounded-[16px]', CARD_VARIANTS[variant] || CARD_VARIANTS.default, className)}
     {...props}
   />
 ))

@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Pencil, Trash2, MapPin, Star } from 'lucide-react'
+import { Pencil, Trash2, Star } from 'lucide-react'
 import { useAppState } from '../hooks/useAppState'
 import PageHeader from '../components/PageHeader'
 import { Button } from '../components/ui/button'
@@ -25,39 +25,38 @@ export default function Favorites() {
   const navigate = useNavigate()
   const { state, addFavorite, updateFavorite, removeFavorite } = useAppState()
   const [showAdd, setShowAdd] = useState(false)
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
-  const [searching, setSearching] = useState(false)
   const [draftName, setDraftName] = useState('')
+  const [draftAddr, setDraftAddr] = useState('')
   const [draftIcon, setDraftIcon] = useState('star')
-  const debounceRef = useRef(null)
+  const [saving, setSaving] = useState(false)
 
-  const doSearch = (q) => {
-    setQuery(q)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (!q.trim()) { setResults([]); return }
-    debounceRef.current = setTimeout(async () => {
-      setSearching(true)
-      try {
-        const list = await searchKakaoPlaces(q)
-        setResults(list.slice(0, 8))
-      } finally { setSearching(false) }
-    }, 350)
-  }
+  const canSave = draftName.trim() || draftAddr.trim()
 
-  const handlePick = (place) => {
-    const name = draftName.trim() || place.name
+  const handleSave = async () => {
+    const name = draftName.trim()
+    const address = draftAddr.trim()
+    if (!name && !address) return
+    setSaving(true)
+    // 주소(없으면 이름)로 좌표를 찾아 길안내가 가능하도록 함
+    let lat, lng
+    try {
+      const list = await searchKakaoPlaces(address || name)
+      if (list[0]) { lat = list[0].lat; lng = list[0].lng }
+    } finally {
+      setSaving(false)
+    }
     addFavorite({
-      icon: draftIcon, name,
-      address: place.address || place.name,
-      lat: place.lat, lng: place.lng,
+      icon: draftIcon,
+      name: name || address,
+      address: address || name,
+      lat,
+      lng,
     })
     resetForm()
   }
 
   const resetForm = () => {
-    setShowAdd(false); setQuery(''); setResults([])
-    setDraftName(''); setDraftIcon('star')
+    setShowAdd(false); setDraftName(''); setDraftAddr(''); setDraftIcon('star')
   }
 
   const handleRemove = (id, name) => {
@@ -86,7 +85,7 @@ export default function Favorites() {
         {showAdd && (
           <div className="bg-ink-50 rounded-2xl p-4 space-y-4">
             <div>
-              <div className="text-sm font-bold text-ink-700 mb-2">이모지 (선택)</div>
+              <div className="text-sm font-bold text-ink-700 mb-2">아이콘</div>
               <div className="grid grid-cols-6 gap-2">
                 {FAVORITE_ICONS.map((opt) => (
                   <button
@@ -104,48 +103,31 @@ export default function Favorites() {
               </div>
             </div>
             <div>
-              <div className="text-sm font-bold text-ink-700 mb-2">표시 이름 (선택)</div>
+              <div className="text-sm font-bold text-ink-700 mb-2">이름</div>
               <Input
-                placeholder="예: 우리 동네 병원 (비워두면 장소명 사용)"
+                placeholder="예: 우리 동네 병원"
                 value={draftName}
                 onChange={(e) => setDraftName(e.target.value)}
-              />
-            </div>
-            <div>
-              <div className="text-sm font-bold text-ink-700 mb-2">장소 검색</div>
-              <Input
-                placeholder="장소명, 주소, 키워드"
-                value={query}
-                onChange={(e) => doSearch(e.target.value)}
                 autoFocus
               />
             </div>
+            <div>
+              <div className="text-sm font-bold text-ink-700 mb-2">주소</div>
+              <Input
+                placeholder="예: 서울 종로구 대학로 101"
+                value={draftAddr}
+                onChange={(e) => setDraftAddr(e.target.value)}
+              />
+            </div>
 
-            {searching && <div className="text-center text-sm text-ink-500 py-2">검색 중...</div>}
-            {!searching && query && results.length === 0 && (
-              <div className="text-center text-sm text-ink-500 py-2">결과가 없어요</div>
-            )}
-            {results.length > 0 && (
-              <div className="space-y-2 mt-1">
-                {results.map((r, i) => (
-                  <button
-                    key={`${r.id || i}_${r.name}`}
-                    onClick={() => handlePick(r)}
-                    className="w-full flex items-center gap-3 p-3 bg-white hover:bg-primary-50 rounded-xl text-left active:scale-[0.98] transition-all"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-primary-50 text-primary grid place-items-center flex-shrink-0">
-                      <MapPin className="w-[18px] h-[18px]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[15px] font-bold truncate">{r.name}</div>
-                      <div className="text-xs text-ink-500 truncate mt-0.5">{r.address}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <Button variant="secondary" className="w-full mt-2" onClick={resetForm}>
+            <Button
+              className="w-full"
+              disabled={saving || !canSave}
+              onClick={handleSave}
+            >
+              {saving ? '저장 중...' : '저장'}
+            </Button>
+            <Button variant="secondary" className="w-full" onClick={resetForm}>
               취소
             </Button>
           </div>
@@ -153,8 +135,8 @@ export default function Favorites() {
 
         {!showAdd && (
           <>
-            <div className="p-3.5 bg-accent-50 text-ink-700 rounded-xl text-sm font-semibold mb-4 flex items-center gap-2">
-              <Star className="w-4 h-4 text-warning flex-shrink-0" />
+            <div className="p-3.5 bg-primary-50 text-primary-700 rounded-xl text-sm font-semibold mb-4 flex items-center gap-2">
+              <Star className="w-4 h-4 flex-shrink-0" />
               즐겨찾기는 홈 화면에서 한 번에 갈 수 있어요
             </div>
 
@@ -172,11 +154,11 @@ export default function Favorites() {
                 {state.favorites.map((f) => {
                   const ic = favoriteIcon(f)
                   return (
-                  <div key={f.id} className="flex items-center gap-2 p-2.5 bg-ink-50 rounded-2xl min-h-[72px]">
+                  <div key={f.id} className="flex items-center gap-2 p-2.5 bg-white border border-black/[0.04] rounded-2xl min-h-[72px] shadow-card">
                     <button
                       onClick={() => handleIcon(f)}
                       aria-label="이모지 변경"
-                      className="w-12 h-12 rounded-2xl bg-white grid place-items-center flex-shrink-0 hover:bg-ink-100"
+                      className="w-12 h-12 rounded-2xl bg-ink-50 grid place-items-center flex-shrink-0 hover:bg-ink-100"
                     >
                       <IconBadge Icon={ic.Icon} tone={ic.tone} size="md" className="bg-transparent" />
                     </button>

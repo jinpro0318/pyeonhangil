@@ -56,12 +56,12 @@ export default function EmergencyContacts() {
       />
 
       <div className="flex-1 overflow-y-auto no-scrollbar p-4 pb-8">
-        <div className="p-3.5 bg-danger-50 text-danger rounded-xl text-sm font-semibold leading-relaxed mb-4">
+        <div className="p-4 bg-danger-50 border border-danger/20 text-danger rounded-2xl text-sm font-semibold leading-relaxed mb-4">
           🆘 SOS 버튼을 누르면 첫 번째 연락처에게 자동으로 위치가 전송돼요
         </div>
 
         {showForm && (
-          <div className="bg-ink-50 rounded-2xl p-4 mb-4 space-y-3">
+          <div className="bg-white border border-black/[0.04] shadow-card rounded-2xl p-4 mb-4 space-y-3">
             <Field label="이름">
               <Input
                 placeholder="예: 김영수"
@@ -129,8 +129,8 @@ export default function EmergencyContacts() {
             <div className="text-[13px] font-bold text-ink-500 mb-2 px-1">내 긴급 연락처</div>
             <div className="space-y-2.5">
               {contacts.map((c, idx) => (
-                <div key={c.id} className="flex items-center gap-3 p-3.5 bg-ink-50 rounded-2xl min-h-[76px]">
-                  <div className="w-8 h-8 rounded-full bg-primary text-white grid place-items-center font-bold text-sm flex-shrink-0">
+                <div key={c.id} className="flex items-center gap-3 p-3.5 bg-white border border-black/[0.04] shadow-card rounded-2xl min-h-[76px]">
+                  <div className="w-9 h-9 rounded-full bg-primary text-white grid place-items-center font-bold text-sm flex-shrink-0">
                     {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">

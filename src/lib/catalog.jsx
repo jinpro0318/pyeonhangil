@@ -1,5 +1,5 @@
 import {
-  PersonStanding, Accessibility, Glasses, Baby, Bandage,
+  Accessibility,
   Armchair, Toilet, ArrowUpDown, TrendingUp, Hospital, Pill, TrainFront, Landmark,
   TrafficCone, Ban, Mountain, Droplets, TriangleAlert,
   House, ShoppingCart, Church, TreePine, UtensilsCrossed, Coffee, School, Star, MapPin,
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 
 // tone → Tailwind 리터럴 클래스 (JIT 스캔 대상이므로 동적 조합 금지, 전체 문자열 유지)
 export const TONES = {
-  primary: { soft: 'bg-primary-50 text-primary-600',  solid: 'bg-primary text-white',     line: 'text-primary-600',  dot: 'bg-primary',     hex: '#1A8FE3' },
+  primary: { soft: 'bg-primary-50 text-primary-600',  solid: 'bg-primary text-white',     line: 'text-primary-600',  dot: 'bg-primary',     hex: '#3F52B4' },
   emerald: { soft: 'bg-emerald-100 text-emerald-600', solid: 'bg-emerald-500 text-white', line: 'text-emerald-600',  dot: 'bg-emerald-500', hex: '#22C55E' },
   blue:    { soft: 'bg-blue-100 text-blue-600',       solid: 'bg-blue-500 text-white',    line: 'text-blue-600',     dot: 'bg-blue-500',    hex: '#3182F6' },
   sky:     { soft: 'bg-sky-100 text-sky-600',         solid: 'bg-sky-500 text-white',     line: 'text-sky-600',      dot: 'bg-sky-500',     hex: '#0EA5E9' },
@@ -42,15 +42,6 @@ export function Stairs({ strokeWidth = 2, ...props }) {
       <path d="M3 20h4v-5h4v-5h4V5h5" />
     </svg>
   )
-}
-
-// 5종 페르소나 (WALK_STATES 의 id 와 1:1)
-export const WALK_ICONS = {
-  older:      { Icon: PersonStanding, tone: 'success' },
-  wheelchair: { Icon: Accessibility,  tone: 'primary' },
-  visual:     { Icon: Glasses,        tone: 'warning' },
-  stroller:   { Icon: Baby,           tone: 'violet' },
-  injured:    { Icon: Bandage,        tone: 'danger' },
 }
 
 // 무장애 시설 / POI 타입 (POI_TYPES 의 key 와 1:1)
@@ -101,7 +92,6 @@ const LEGACY_EMOJI_TO_KEY = {
 
 const FALLBACK = { Icon: MapPin, tone: 'primary' }
 
-export const walkIcon = (id) => WALK_ICONS[id] || FALLBACK
 export const poiIcon = (type) => POI_ICONS[type] || FALLBACK
 export const hazardIcon = (type) => HAZARD_ICONS[type] || HAZARD_ICONS.other
 

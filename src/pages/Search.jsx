@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Mic, MapPin, ChevronLeft } from 'lucide-react'
+import { Mic, MapPin, X, Search as SearchIcon } from 'lucide-react'
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
-import { useVoice } from '../hooks/useVoice'
 import { useGPS } from '../hooks/useGPS'
-import { Input } from '../components/ui/input'
 
 const FALLBACK_DESTINATIONS = [
   { name: '서울대학교병원', address: '서울 종로구 대학로 101', lat: 37.579617, lng: 126.998292, keywords: ['병원', '의원', '아파', '진료'] },
@@ -65,7 +63,6 @@ export default function Search() {
   const [results, setResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
-  const { speak } = useVoice()
   const { isListening, transcript, start, isSupported } = useSpeechRecognition()
   const { position, start: startGPS } = useGPS({ enableStayDetection: false })
   const debounceRef = useRef(null)
@@ -74,10 +71,9 @@ export default function Search() {
 
   useEffect(() => {
     if (mode === 'voice' && isSupported) {
-      speak('어디로 가세요?', { onceKey: 'search-voice-prompt' })
-      setTimeout(() => start(), 1000)
+      setTimeout(() => start(), 600)
     }
-  }, [mode, isSupported, speak, start])
+  }, [mode, isSupported, start])
 
   useEffect(() => {
     if (transcript) {
@@ -117,15 +113,6 @@ export default function Search() {
 
     setResults(list.slice(0, 8))
     setIsSearching(false)
-
-    if (mode === 'voice') {
-      const first = list[0]
-      if (first) {
-        speak(`${first.name}을 찾았어요. 맞으면 아래 결과를 눌러주세요`, {
-          onceKey: `voice-search-result:${first.name}`,
-        })
-      }
-    }
   }
 
   const goTo = (dest) => {
@@ -133,87 +120,110 @@ export default function Search() {
   }
 
   return (
-    <div className="flex-1 flex flex-col px-[22px] pb-6 overflow-hidden bg-background">
-      <div className="min-h-[64px] flex items-center gap-3 px-4">
-        <button
-          onClick={() => navigate(-1)}
-          aria-label="뒤로"
-          className="w-10 h-10 rounded-lg bg-white border border-ink-200 grid place-items-center text-ink-700 active:scale-95 shadow-sm"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <h2 className="text-xl font-extrabold tracking-normal">
-          {mode === 'voice' ? '목적지를 말씀해 주세요' : '갈 수 있는 길 찾기'}
-        </h2>
-      </div>
+    <div
+      className="absolute inset-0 z-[120] bg-ink-900/40 backdrop-blur-sm flex items-end animate-fade-in"
+      onClick={() => navigate(-1)}
+    >
+      <div
+        className="w-full bg-background rounded-t-2xl shadow-xl max-h-[92%] flex flex-col overflow-hidden animate-slide-up"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
+        {/* 그랩 핸들 */}
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+          <div className="w-12 h-1.5 bg-ink-200 rounded-full" />
+        </div>
 
-      {mode === 'voice' ? (
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* 음성 파형 */}
-          <div className="flex items-end justify-center gap-1.5 h-20 mb-6 mt-8">
-            {[0, 1, 2, 3, 4, 3, 2, 1].map((h, i) => (
-              <div
-                key={i}
-                className="w-2 bg-primary rounded-full animate-voice-pulse"
-                style={{
-                  height: `${20 + h * 8}px`,
-                  animationDelay: `${i * 0.1}s`,
-                }}
-              />
-            ))}
-          </div>
-
-          <div className="bg-white border border-primary-100 rounded-xl px-6 py-5 w-full text-center mb-6 shadow-sm">
-            <div className="text-xs font-bold text-primary-700 mb-1 inline-flex items-center gap-1 justify-center">
-              {isListening ? <><Mic className="w-3.5 h-3.5" /> 듣고 있어요</> : '듣는 중이에요'}
-            </div>
-            <div className="text-lg font-bold text-ink-900">
-              {transcript || (isSearching ? '찾는 중…' : '"서울대병원까지 편한 길"')}
-            </div>
-          </div>
-
+        {/* 헤더 */}
+        <div className="min-h-[56px] flex items-center gap-3 px-5 flex-shrink-0">
+          <h2 className="flex-1 text-xl font-extrabold tracking-normal">
+            {mode === 'voice' ? '목적지를 말씀해 주세요' : '갈 수 있는 길 찾기'}
+          </h2>
           <button
-            onClick={start}
-            className="w-20 h-20 bg-primary text-white rounded-2xl grid place-items-center shadow-primary active:scale-95 mx-auto"
-            aria-label="다시 듣기"
+            onClick={() => navigate(-1)}
+            aria-label="닫기"
+            className="w-10 h-10 rounded-lg grid place-items-center text-ink-500 hover:bg-ink-100 active:scale-95"
           >
-            <Mic className="w-8 h-8" strokeWidth={2.5} />
+            <X className="w-6 h-6" />
           </button>
-          <p className="mt-4 text-sm text-ink-500 font-semibold text-center">다시 말씀하시려면 눌러주세요</p>
+        </div>
 
-          {(hasSearched || results.length > 0) && (
-            <div className="mt-6 flex-1 overflow-y-auto no-scrollbar">
-              <div className="text-[13px] font-bold text-ink-500 mb-2 px-1">
-                {isSearching ? '찾는 중...' : '맞는 목적지를 선택해 주세요'}
+        {/* 본문 */}
+        <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-6">
+          {mode === 'voice' ? (
+            <div className="flex flex-col">
+              {/* 음성 파형 */}
+              <div className="flex items-end justify-center gap-1.5 h-20 mb-6 mt-2">
+                {[0, 1, 2, 3, 4, 3, 2, 1].map((h, i) => (
+                  <div
+                    key={i}
+                    className="w-2 bg-primary rounded-full animate-voice-pulse"
+                    style={{
+                      height: `${20 + h * 8}px`,
+                      animationDelay: `${i * 0.1}s`,
+                    }}
+                  />
+                ))}
               </div>
-              <SearchResults items={results} onPick={goTo} />
+
+              <div className="bg-white border border-primary-100 rounded-xl px-6 py-5 w-full text-center mb-6 shadow-sm">
+                <div className="text-xs font-bold text-primary-700 mb-1 inline-flex items-center gap-1 justify-center">
+                  {isListening ? <><Mic className="w-3.5 h-3.5" /> 듣고 있어요</> : '듣는 중이에요'}
+                </div>
+                <div className="text-lg font-bold text-ink-900">
+                  {transcript || (isSearching ? '찾는 중…' : '"서울대병원까지 편한 길"')}
+                </div>
+              </div>
+
+              <button
+                onClick={start}
+                className="w-20 h-20 bg-primary text-white rounded-2xl grid place-items-center shadow-primary active:scale-95 mx-auto"
+                aria-label="다시 듣기"
+              >
+                <Mic className="w-8 h-8" strokeWidth={2.5} />
+              </button>
+              <p className="mt-4 text-sm text-ink-500 font-semibold text-center">다시 말씀하시려면 눌러주세요</p>
+
+              {(hasSearched || results.length > 0) && (
+                <div className="mt-6">
+                  <div className="text-[13px] font-bold text-ink-500 mb-2 px-1">
+                    {isSearching ? '찾는 중...' : '맞는 목적지를 선택해 주세요'}
+                  </div>
+                  <SearchResults items={results} onPick={goTo} />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <div className="app-searchbar focus-within:ring-2 focus-within:ring-primary/30">
+                <SearchIcon className="w-5 h-5 flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="목적지를 입력하세요"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && doSearch(text)}
+                  autoFocus
+                  className="flex-1 min-w-0 bg-transparent text-base font-medium text-ink-900 placeholder:text-ink-400 focus:outline-none"
+                />
+              </div>
+              <div>
+                <div className="text-[13px] font-bold text-ink-500 mb-2 px-1">
+                  {hasSearched
+                    ? isSearching
+                      ? '찾는 중...'
+                      : results.length === 0
+                      ? '결과가 없어요'
+                      : '검색 결과'
+                    : '편한길 예시 목적지'}
+                </div>
+                <SearchResults items={hasSearched ? results : FALLBACK_DESTINATIONS} onPick={goTo} />
+              </div>
             </div>
           )}
         </div>
-      ) : (
-        <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-          <Input
-            type="text"
-            placeholder="목적지를 입력하세요"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && doSearch(text)}
-            autoFocus
-          />
-          <div className="flex-1 overflow-y-auto no-scrollbar">
-            <div className="text-[13px] font-bold text-ink-500 mb-2 px-1">
-              {hasSearched
-                ? isSearching
-                  ? '찾는 중...'
-                  : results.length === 0
-                  ? '결과가 없어요'
-                  : '검색 결과'
-                : '편한길 예시 목적지'}
-            </div>
-            <SearchResults items={hasSearched ? results : FALLBACK_DESTINATIONS} onPick={goTo} />
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   )
 }

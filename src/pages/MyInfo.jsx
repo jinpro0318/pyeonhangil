@@ -5,7 +5,7 @@ import {
   Settings, ShieldCheck, Star, UserRound,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useAppState, WALK_STATES } from '../hooks/useAppState'
+import { useAppState } from '../hooks/useAppState'
 import { useAuth } from '../hooks/useAuth'
 import { getMonthlyStats } from '../services/tripStore'
 import TabBar from '../components/TabBar'
@@ -13,21 +13,12 @@ import { Button } from '../components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { isAdminEmail } from '../lib/admin'
-import { IconBadge, walkIcon } from '@/lib/catalog'
-
-const WALK_CHIP = {
-  older: 'bg-success-50 text-success-600 border-success/20',
-  wheelchair: 'bg-primary-50 text-primary border-primary/20',
-  visual: 'bg-warning-50 text-warning border-warning/20',
-  stroller: 'bg-walk-stroller-soft text-walk-stroller border-walk-stroller/20',
-  injured: 'bg-danger-50 text-danger border-danger/20',
-}
+import { IconBadge } from '@/lib/catalog'
 
 export default function MyInfo() {
   const navigate = useNavigate()
   const { state, updateUser } = useAppState()
   const { user, signOut } = useAuth()
-  const walk = WALK_STATES[state.user.walkState] || WALK_STATES.older
   const stats = useMemo(() => getMonthlyStats(), [])
 
   const connectedFamily = state.family.filter((f) => f.status === 'connected')
@@ -75,13 +66,6 @@ export default function MyInfo() {
                 <div className="text-sm text-ink-500 font-semibold truncate mt-1">
                   {user?.email || '로그인 계정 없음'}
                 </div>
-                <button
-                  onClick={() => navigate('/walk-state')}
-                  className={cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold mt-3', WALK_CHIP[walk.id])}
-                >
-                  {(() => { const { Icon } = walkIcon(walk.id); return <Icon className="w-4 h-4" strokeWidth={2.4} /> })()}
-                  {walk.name}
-                </button>
               </div>
             </div>
           </section>

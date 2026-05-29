@@ -7,7 +7,7 @@ import { useGPS } from '../hooks/useGPS'
 import { useVoice } from '../hooks/useVoice'
 import { useHaptics } from '../hooks/useHaptics'
 import { useKakaoMap } from '../hooks/useKakaoMap'
-import { useAppState, WALK_STATES } from '../hooks/useAppState'
+import { useAppState } from '../hooks/useAppState'
 import { fetchPois, fetchPoisInBbox } from '../services/poiApi'
 import { fetchRoute } from '../services/routeApi'
 import { startTrip, getActiveTrip } from '../services/tripStore'
@@ -20,14 +20,6 @@ import { cn } from '@/lib/utils'
 const SERVICE_TYPES = ['rest', 'toilet', 'elev', 'ramp', 'cross']
 const ROUTE_RADIUS_METERS = 50
 
-const WALK_CHIP = {
-  older: 'bg-success-50 text-success-600 border border-success/20',
-  wheelchair: 'bg-primary-50 text-primary border border-primary/20',
-  visual: 'bg-warning-50 text-warning border border-warning/20',
-  stroller: 'bg-walk-stroller-soft text-walk-stroller border border-walk-stroller/20',
-  injured: 'bg-danger-50 text-danger border border-danger/20',
-}
-
 export default function Navigation() {
   const navigate = useNavigate()
   const mapRef = useRef(null)
@@ -37,7 +29,6 @@ export default function Navigation() {
   const { position, speedMeterPerMin, isStaying, isTracking, hasPosition, start } = useGPS({
     stayThresholdSeconds: 180,
   })
-  const walk = WALK_STATES[state.user.walkState] || WALK_STATES.older
   const destination = state.destination
   const destName = destination?.name || '병원'
 
@@ -81,7 +72,7 @@ export default function Navigation() {
   }, [isStaying, navigate])
 
   const distanceMeters = route?.distanceMeters || 0
-  const remainingTime = distanceMeters ? estimateMinutes(distanceMeters, walk.id) : 12
+  const remainingTime = distanceMeters ? estimateMinutes(distanceMeters) : 12
 
   const announcedRef = useRef(false)
   useEffect(() => {
@@ -99,7 +90,7 @@ export default function Navigation() {
   const handleArrived = () => navigate('/arrived')
 
   const polylines = route?.coords?.length > 1
-    ? [{ path: route.coords, color: '#3182F6', weight: 7, opacity: 0.85 }] : []
+    ? [{ path: route.coords, color: '#3F52B4', weight: 7, opacity: 0.85 }] : []
 
   const destPois = []
   if (destination?.lat) {
@@ -155,9 +146,6 @@ export default function Navigation() {
               <span className="ml-1 text-sm text-ink-500 font-bold">· {formatDistance(distanceMeters)}</span>
             )}
           </div>
-          <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0', WALK_CHIP[walk.id])}>
-            {walk.emoji} {walk.name}
-          </span>
         </div>
 
         {/* 음성 파형 */}
@@ -187,27 +175,29 @@ export default function Navigation() {
         <div className="text-center text-sm text-ink-500 mb-5">"파란선을 따라가세요"</div>
 
         {/* 음성 명령 힌트 */}
-        <div className="bg-white border border-success-50 rounded-xl p-3.5 mb-4 shadow-sm">
-          <div className="flex items-start gap-2.5">
-            <ShieldCheck className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" />
+        <div className="bg-success-50 border border-success/30 rounded-2xl p-4 mb-3 shadow-card">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-success/15 grid place-items-center flex-shrink-0">
+              <ShieldCheck className="w-5 h-5 text-success-600" />
+            </div>
             <div>
               <div className="text-sm font-extrabold text-ink-900">
                 경로 주변 편의시설 {nearbyPois.length}곳 확인 중
               </div>
-              <div className="text-xs text-ink-500 font-semibold mt-1 break-keep">
+              <div className="text-xs text-ink-500 font-semibold mt-1 break-keep leading-relaxed">
                 공공데이터와 제보 정보를 함께 보며 쉬어갈 곳과 위험 요소를 안내합니다.
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white border border-primary-100 rounded-xl p-3.5 mb-4 shadow-sm">
-          <div className="text-xs font-bold text-primary-700 mb-1.5 flex items-center gap-1">
+        <div className="bg-primary-50 border border-primary-100 rounded-2xl p-4 mb-4 shadow-card">
+          <div className="text-xs font-bold text-primary-700 mb-2 flex items-center gap-1.5">
             <Mic className="w-3.5 h-3.5" /> 말씀하셔도 돼요
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {['다시 말해줘', '힘들어', '화장실'].map((c) => (
-              <span key={c} className="text-xs font-bold bg-white text-primary px-2 py-1 rounded-full">
+              <span key={c} className="text-xs font-bold bg-white text-primary px-3 py-1.5 rounded-full shadow-sm">
                 "{c}"
               </span>
             ))}
@@ -237,9 +227,9 @@ function QuickBtn({ Icon, label, color, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white border border-ink-200 hover:bg-ink-50 rounded-xl py-3.5 flex flex-col items-center gap-1.5 active:scale-95 transition-all shadow-sm"
+      className="bg-white border border-black/[0.04] hover:bg-ink-50 rounded-xl min-h-[88px] py-3.5 flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-all shadow-card"
     >
-      <div className={cn('w-10 h-10 rounded-lg grid place-items-center border border-current/10', color)}>
+      <div className={cn('w-11 h-11 rounded-xl grid place-items-center border border-current/10', color)}>
         <Icon className="w-5 h-5" />
       </div>
       <div className="text-xs font-bold text-ink-700">{label}</div>

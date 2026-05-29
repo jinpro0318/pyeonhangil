@@ -4,21 +4,36 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        // Inter 우선 → 숫자/영문은 Inter, 한글 글리프는 Pretendard로 자동 폴백
+        sans: ['Inter', 'Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
       },
       colors: {
-        // DESIGN_SYSTEM.md 기준 — Primary Blue #1A8FE3
+        // TripMate Design Spec — Primary Indigo #3F52B4 (Default 700) / Pressed #323D76
         primary: {
-          50: '#EAF6FE',
-          100: '#C7E6FB',
-          200: '#A0D3F8',
-          300: '#6EB9F0',
-          400: '#3D9FE7',
-          500: '#1A8FE3',
-          600: '#1576BB',
-          700: '#105D93',
-          800: '#0B446B',
-          DEFAULT: '#1A8FE3',
+          50: '#EEF0FA',   // spec Weak 50 (background, subtle)
+          100: '#DCE0F4',
+          200: '#B9C1E7',
+          300: '#8E9AD7',
+          400: '#6373C3',
+          500: '#3F52B4',  // spec Default — buttons, links, CTA, icons
+          600: '#37489D',
+          700: '#323D76',  // spec Pressed 900 (hover/pressed)
+          800: '#28315F',
+          900: '#1F2647',
+          DEFAULT: '#3F52B4',
+          foreground: '#FFFFFF',
+        },
+        // TripMate Secondary (Pink/Magenta) — badges, accent buttons
+        pink: {
+          50: '#FCEEF3',   // spec Weak 50
+          100: '#F7D3E0',
+          200: '#EFA8C0',
+          300: '#E27199',
+          400: '#CE4675',
+          500: '#B22459',  // spec Default 700
+          600: '#9A1F4D',
+          700: '#7A1A3D',  // spec Pressed 900
+          DEFAULT: '#B22459',
           foreground: '#FFFFFF',
         },
         ink: {
@@ -82,12 +97,12 @@ export default {
           stroller: '#A855F7',
           'stroller-soft': '#F3E8FF',
         },
-        // shadcn 의미적 토큰 — DESIGN_SYSTEM.md 정렬
-        border: '#D4DCE4',
-        input: '#D4DCE4',
-        ring: '#1A8FE3',
-        background: '#EAF6FE',
-        foreground: '#1A2B3C',
+        // shadcn 의미적 토큰 — TripMate Design Spec 정렬
+        border: '#E2E3EC',          // 연한 보더 (spec Border #9C9FAF는 인풋 전용으로만 사용)
+        input: '#C9CBDA',
+        ring: '#3F52B4',
+        background: '#F5F5F5',      // spec Background Alt — 카드(흰색)가 떠 보이도록
+        foreground: '#1E1E1E',      // spec Text Primary
         muted: { DEFAULT: '#F4F7FA', foreground: '#5A7080' },
         secondary: { DEFAULT: '#FFFFFF', foreground: '#1A2B3C' },
         destructive: { DEFAULT: '#DC2626', foreground: '#FFFFFF' },
@@ -96,28 +111,30 @@ export default {
       },
       // Material 3 Shape Scale (none/xs/sm/md/lg/xl/full) + 디자인 시스템 카드 12px
       borderRadius: {
-        DEFAULT: '8px',     // chip / button (--radius-chip)
-        xs: '4px',          // M3 xs
-        sm: '8px',          // M3 sm — chip · button
-        md: '12px',         // M3 md — card (--radius-card)
-        lg: '16px',         // M3 lg — surface
-        xl: '12px',         // 호환: 기존 코드 다수가 rounded-xl 사용 (= 카드 12px)
-        '2xl': '20px',      // M3 컨테이너
-        '3xl': '28px',      // M3 xl — large container
+        DEFAULT: '12px',    // spec button / input
+        xs: '4px',
+        sm: '8px',          // 작은 칩 · 작은 버튼
+        md: '12px',         // spec button / input
+        lg: '16px',         // spec card
+        xl: '16px',         // spec card — 기존 rounded-xl 카드 다수를 16px로 정렬
+        '2xl': '20px',      // 큰 컨테이너 / 바텀시트
+        '3xl': '28px',      // large container
       },
       // Material 3 Elevation (Level 1~5) — 카드/시트/FAB
       boxShadow: {
-        sm: '0 1px 2px rgba(26,43,60,0.05)',                                          // M3 Level 1
-        DEFAULT: '0 1px 3px rgba(26,43,60,0.10), 0 1px 2px rgba(26,43,60,0.06)',      // M3 Level 1+
-        md: '0 4px 8px rgba(26,43,60,0.08), 0 2px 4px rgba(26,43,60,0.06)',           // M3 Level 2
-        lg: '0 10px 20px rgba(26,43,60,0.10), 0 4px 8px rgba(26,43,60,0.06)',         // M3 Level 3
-        xl: '0 18px 32px rgba(26,43,60,0.14), 0 8px 16px rgba(26,43,60,0.08)',        // M3 Level 4
-        '2xl': '0 24px 48px rgba(26,43,60,0.18), 0 12px 24px rgba(26,43,60,0.10)',    // M3 Level 5
-        primary: '0 8px 20px rgba(26,143,227,0.30)',                                  // CTA blue glow
+        sm: '0 1px 2px rgba(30,30,30,0.05)',                                          // M3 Level 1
+        DEFAULT: '0 1px 3px rgba(30,30,30,0.10), 0 1px 2px rgba(30,30,30,0.06)',      // M3 Level 1+
+        card: '0 2px 12px rgba(0,0,0,0.08)',                                          // spec Card shadow
+        md: '0 2px 12px rgba(0,0,0,0.08)',                                            // spec Card shadow
+        lg: '0 10px 20px rgba(30,30,30,0.10), 0 4px 8px rgba(30,30,30,0.06)',         // M3 Level 3
+        xl: '0 18px 32px rgba(30,30,30,0.14), 0 8px 16px rgba(30,30,30,0.08)',        // M3 Level 4
+        '2xl': '0 24px 48px rgba(30,30,30,0.18), 0 12px 24px rgba(30,30,30,0.10)',    // M3 Level 5
+        primary: '0 4px 12px rgba(63,82,180,0.30)',                                   // spec Button shadow (indigo)
+        pink: '0 4px 12px rgba(178,36,89,0.30)',                                      // accent button glow
         success: '0 8px 20px rgba(62,190,110,0.28)',                                  // 배리어프리 OK glow
         warning: '0 8px 20px rgba(232,93,36,0.28)',                                   // 계단/주의 glow
         danger: '0 8px 20px rgba(220,38,38,0.28)',                                    // SOS glow
-        fab: '0 6px 12px rgba(26,143,227,0.36), 0 2px 4px rgba(26,43,60,0.10)',       // FAB Level 3
+        fab: '0 6px 12px rgba(63,82,180,0.36), 0 2px 4px rgba(30,30,30,0.10)',        // FAB Level 3
       },
       letterSpacing: {
         tighter: '0',

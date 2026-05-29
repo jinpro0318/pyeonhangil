@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAppState } from './useAppState'
 
 const spokenOnce = new Set()
 const recentSpeech = new Map()
@@ -118,17 +117,14 @@ export function useVoice() {
 
 /**
  * 페이지 진입 시 자동 음성 안내
- * - 시각장애 사용자(walkState === 'visual')일 때만 발음
- * - 일반 사용자는 무음
+ * - options.force 가 true 일 때만 발음 (기본은 무음)
  */
 export function useAutoAnnounce(text, options = {}) {
-  const { state } = useAppState()
   const { speak } = useVoice()
 
   useEffect(() => {
     if (!text) return
-    const isVisualUser = state.user.walkState === 'visual'
-    if (!isVisualUser && !options.force) return
+    if (!options.force) return
     const t = setTimeout(() => {
       speak(text, {
         onceKey: `auto-announce:${text.slice(0, 30)}`,

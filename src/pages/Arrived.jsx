@@ -61,7 +61,7 @@ export default function Arrived() {
       <div className="text-3xl font-extrabold tracking-tighter text-ink-900 mb-2">도착했어요!</div>
       <div className="text-base text-ink-500 font-semibold mb-7">{destination}</div>
 
-      <div className="w-full bg-white rounded-3xl p-5 shadow-sm mb-4">
+      <div className="w-full bg-white rounded-3xl p-5 shadow-card border border-black/[0.04] mb-4">
         <div className="text-xs font-bold text-ink-500 text-center mb-3">수고 많으셨어요</div>
         <div className="flex">
           <div className="flex-1 text-center">
@@ -81,8 +81,8 @@ export default function Arrived() {
       </div>
 
       {primaryFamily ? (
-        <div className="w-full bg-success-50 rounded-2xl p-4 flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-full bg-success text-white grid place-items-center flex-shrink-0">
+        <div className="w-full bg-success-50 border border-success/30 rounded-2xl p-4 flex items-center gap-3 mb-5 shadow-sm">
+          <div className="w-11 h-11 rounded-full bg-success text-white grid place-items-center flex-shrink-0">
             <Bell className="w-5 h-5" />
           </div>
           <div>
@@ -93,8 +93,8 @@ export default function Arrived() {
           </div>
         </div>
       ) : (
-        <div className="w-full bg-ink-50 rounded-2xl p-4 flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-full bg-ink-400 text-white grid place-items-center flex-shrink-0">
+        <div className="w-full bg-white border border-black/[0.04] rounded-2xl p-4 flex items-center gap-3 mb-5 shadow-card">
+          <div className="w-11 h-11 rounded-full bg-ink-400 text-white grid place-items-center flex-shrink-0">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>

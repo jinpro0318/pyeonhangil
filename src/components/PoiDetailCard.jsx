@@ -28,7 +28,7 @@ export default function PoiDetailCard({ poi, onClose }) {
 
   if (!poi) return null
 
-  const meta = POI_TYPES[poi.type] || { label: '장소', emoji: '📍', color: '#3182F6' }
+  const meta = POI_TYPES[poi.type] || { label: '장소', emoji: '📍', color: '#3F52B4' }
 
   const handleNavigate = () => {
     navigate('/route', {

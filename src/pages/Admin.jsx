@@ -75,9 +75,9 @@ export default function Admin() {
       <PageHeader title="관리자" backTo="/home" />
 
       <div className="flex-1 overflow-y-auto no-scrollbar p-4 pb-8">
-        <div className="bg-primary text-white rounded-xl p-4 mb-4 shadow-primary">
+        <div className="bg-primary text-white rounded-2xl p-5 mb-4 shadow-primary">
           <div className="flex items-start gap-3">
-            <div className="w-11 h-11 rounded-lg bg-white/10 grid place-items-center flex-shrink-0">
+            <div className="w-11 h-11 rounded-xl bg-white/15 grid place-items-center flex-shrink-0">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -100,7 +100,7 @@ export default function Admin() {
         </div>
 
         <SectionTitle>위험 유형 분포</SectionTitle>
-        <div className="bg-white border border-ink-200 rounded-xl p-4 shadow-sm mb-5">
+        <div className="bg-white border border-black/[0.04] rounded-xl p-4 shadow-card mb-5">
           <div className="space-y-3">
             {reportSummary.map((item) => {
               const ic = hazardIcon(item.type)
@@ -135,7 +135,7 @@ export default function Admin() {
             const meta = REPORT_TYPES[r.type] || REPORT_TYPES.other
             const ic = reportIcon(r.type, r.category || 'hazard')
             return (
-              <div key={r.id} className="bg-white border border-ink-200 rounded-xl p-4 shadow-sm">
+              <div key={r.id} className="bg-white border border-black/[0.04] rounded-xl p-4 shadow-card">
                 <div className="flex gap-3">
                   <IconBadge Icon={ic.Icon} tone={ic.tone} size="sm" />
                   <div className="flex-1 min-w-0">
@@ -173,7 +173,7 @@ export default function Admin() {
 
 function StatCard({ Icon, label, value, tone }) {
   return (
-    <div className="bg-white border border-ink-200 rounded-xl p-4 shadow-sm">
+    <div className="bg-white border border-black/[0.04] rounded-xl p-4 shadow-card">
       <IconBadge Icon={Icon} tone={tone} size="sm" className="mb-3" />
       <div className="text-xl font-extrabold text-ink-900 leading-tight break-keep">{value}</div>
       <div className="text-xs font-bold text-ink-500 mt-2">{label}</div>
@@ -187,7 +187,7 @@ function SectionTitle({ children }) {
 
 function EmptyState({ text }) {
   return (
-    <div className="bg-white border border-ink-200 rounded-xl p-6 text-center text-sm font-bold text-ink-400 shadow-sm">
+    <div className="bg-white border border-black/[0.04] rounded-xl p-6 text-center text-sm font-bold text-ink-400 shadow-card">
       {text}
     </div>
   )

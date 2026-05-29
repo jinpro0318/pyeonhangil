@@ -26,11 +26,6 @@ export default function Permissions() {
   }
 
   const requestVoice = () => {
-    if ('speechSynthesis' in window) {
-      const u = new SpeechSynthesisUtterance('편한길입니다')
-      u.lang = 'ko-KR'; u.volume = 0.5
-      window.speechSynthesis.speak(u)
-    }
     setPerms((p) => ({ ...p, voice: true }))
   }
 

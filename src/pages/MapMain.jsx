@@ -99,18 +99,18 @@ export default function MapMain() {
         </div>
 
         {/* 검색바 */}
-        <div className="absolute top-3.5 left-3.5 right-3.5 bg-white rounded-xl p-2 pl-3 flex items-center gap-2.5 shadow-md border border-ink-200 z-20">
+        <div className="absolute top-3.5 left-3.5 right-3.5 bg-white rounded-xl p-2 flex items-center gap-2 shadow-card border border-black/[0.04] z-20">
           <button
             onClick={() => navigate('/search?mode=text')}
-            className="flex-1 flex items-center gap-2.5 py-2.5 text-[15px] text-ink-500 font-semibold text-left"
+            className="app-searchbar flex-1 text-[15px] font-semibold text-left"
           >
-            <Search className="w-[18px] h-[18px]" />
+            <Search className="w-[18px] h-[18px] flex-shrink-0" />
             <span>어디를 찾으세요?</span>
           </button>
           <button
             onClick={() => navigate('/search?mode=voice')}
             aria-label="음성으로 검색"
-            className="w-10 h-10 bg-primary text-white rounded-lg grid place-items-center active:scale-95 shadow-primary"
+            className="w-12 h-12 min-h-[48px] bg-primary text-white rounded-[12px] grid place-items-center active:scale-95 shadow-primary flex-shrink-0"
           >
             <Mic className="w-[18px] h-[18px]" />
           </button>
@@ -128,7 +128,7 @@ export default function MapMain() {
         )}
 
         {/* 필터 카드 */}
-        <div className="absolute bottom-3.5 left-3.5 right-3.5 bg-white rounded-xl p-4 shadow-lg border border-ink-200 z-20">
+        <div className="absolute bottom-3.5 left-3.5 right-3.5 bg-white rounded-xl p-4 shadow-card border border-black/[0.04] z-20">
           <div className="flex items-center justify-between mb-2.5">
             <div className="text-[13px] font-bold text-ink-700 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-success-600" />

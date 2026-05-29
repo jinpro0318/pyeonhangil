@@ -6,20 +6,22 @@ import { cn } from '@/lib/utils'
 // Material 3 Button — Filled / Tonal / Outlined / Text / Elevated + FAB
 // CityTrans 패턴: 도보·교통 화면에 어울리도록 success/warning 의미색 + FAB 포함
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-base font-bold tracking-normal transition-all disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background [&_svg]:shrink-0 active:scale-[0.98]',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[12px] text-base font-semibold tracking-normal transition-all disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background [&_svg]:shrink-0 active:scale-[0.98]',
   {
     variants: {
       variant: {
-        // M3 Filled — 주요 액션 (이 길로 갈게요 / 경로 시작)
-        default: 'bg-primary text-white hover:bg-primary-600 shadow-primary',
-        // M3 Tonal — 보조 액션 (덜 강조, 디자인 시스템 권장)
+        // spec Primary Button — #3F52B4, CTA
+        default: 'bg-primary text-white hover:bg-primary-600 active:bg-primary-700 shadow-primary',
+        // spec Tonal — 보조 액션 (연한 인디고)
         tonal: 'bg-primary-50 text-primary-700 hover:bg-primary-100',
-        // M3 Outlined — 같은 위계 보조 액션
-        outline: 'border border-ink-200 bg-white text-ink-900 hover:bg-primary-50 hover:border-primary',
-        // M3 Text — 가장 약한 액션 (취소 / 더보기)
+        // spec Outline Button — 1.5px 인디고 보더
+        outline: 'border-[1.5px] border-primary bg-transparent text-primary hover:bg-primary-50',
+        // Text — 가장 약한 액션 (취소 / 더보기)
         ghost: 'text-primary hover:bg-primary-50',
-        // M3 Elevated — 흰 배경 + 그림자 (지도 위 컨트롤)
+        // Elevated — 흰 배경 + 그림자 (지도 위 컨트롤)
         secondary: 'bg-white text-ink-900 border border-ink-200 hover:bg-ink-50 shadow-md',
+        // spec Secondary Pink — 배지/강조 액션
+        pink: 'bg-pink text-white hover:bg-pink-600 active:bg-pink-700 shadow-pink',
         // 위험 / SOS
         destructive: 'bg-danger text-white hover:bg-danger-600 shadow-danger',
         // 배리어프리 OK (Success Green)

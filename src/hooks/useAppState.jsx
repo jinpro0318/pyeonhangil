@@ -14,7 +14,6 @@ export const FONT_SIZES = {
 const defaultState = {
   user: {
     name: '사용자',
-    walkState: 'older',
     fontSize: 'md',
   },
   destination: null,
@@ -39,53 +38,9 @@ const defaultState = {
   ],
 }
 
-export const WALK_STATES = {
-  older: {
-    id: 'older',
-    emoji: '👵',
-    name: '고령자',
-    desc: '계단·경사를 피하고, 긴 거리는 대중교통으로 나눠 안내해요',
-    speed: '0.6~0.8m/초',
-    color: 'older',
-  },
-  wheelchair: {
-    id: 'wheelchair',
-    emoji: '♿',
-    name: '휠체어·보행기',
-    desc: '엘리베이터·경사로와 저상버스·환승 동선을 우선해요',
-    speed: '0.4~0.6m/초',
-    color: 'wheelchair',
-  },
-  visual: {
-    id: 'visual',
-    emoji: '🦯',
-    name: '시각장애인',
-    desc: '횡단보도·승하차 등 안전 안내를 음성으로 강화해요',
-    speed: '0.5~0.7m/초',
-    color: 'visual',
-  },
-  stroller: {
-    id: 'stroller',
-    emoji: '👶',
-    name: '유모차 동반',
-    desc: '엘리베이터·턱 없는 길과 타기 쉬운 교통편을 우선해요',
-    speed: '0.6~0.8m/초',
-    color: 'stroller',
-  },
-  injured: {
-    id: 'injured',
-    emoji: '🩼',
-    name: '일시적 부상자',
-    desc: '짧은 보행과 쉴 곳, 대중교통 이용을 우선해요',
-    speed: '0.5~0.7m/초',
-    color: 'injured',
-  },
-}
-
 function migrate(parsed) {
   const user = { ...defaultState.user, ...(parsed.user || {}) }
   if (!FONT_SIZES[user.fontSize]) user.fontSize = 'md'
-  if (!WALK_STATES[user.walkState]) user.walkState = defaultState.user.walkState
 
   const favorites = Array.isArray(parsed.favorites) && parsed.favorites.every((f) => f.lat && f.lng)
     ? parsed.favorites

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Armchair, MapPin, Play, Mic } from 'lucide-react'
 import { useVoice } from '../hooks/useVoice'
-import { useAppState, WALK_STATES } from '../hooks/useAppState'
+import { useAppState } from '../hooks/useAppState'
 import { useGPS } from '../hooks/useGPS'
 import { haversine } from '../utils/geo'
 import { Button } from '../components/ui/button'
@@ -48,11 +48,9 @@ export default function Resting() {
   }, [speak, start])
 
   const minutesLeft = useMemo(
-    () => estimateMinutesLeft(state.activeRoute, position, state.user.walkState),
-    [state.activeRoute, position, state.user.walkState]
+    () => estimateMinutesLeft(state.activeRoute, position),
+    [state.activeRoute, position]
   )
-
-  const walk = WALK_STATES[state.user.walkState] || WALK_STATES.older
 
   const handleResume = () => {
     speak('다시 안내를 시작할게요', { immediate: true })
@@ -84,8 +82,8 @@ export default function Resting() {
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl p-4 flex items-center gap-3 mb-3 shadow-sm">
-        <div className="w-11 h-11 rounded-xl bg-primary-50 text-primary grid place-items-center flex-shrink-0">
+      <div className="bg-white rounded-2xl p-4 flex items-center gap-3 mb-3 shadow-card border border-black/[0.04]">
+        <div className="w-12 h-12 rounded-xl bg-primary-50 text-primary grid place-items-center flex-shrink-0">
           <Play className="w-5 h-5" />
         </div>
         <div className="flex-1">
@@ -101,7 +99,7 @@ export default function Resting() {
         "이제 가자"라고 말씀하시면 바로 안내 재개돼요
       </div>
 
-      <div className="bg-white rounded-2xl p-5 flex text-center mb-5 shadow-sm">
+      <div className="bg-white rounded-2xl p-5 flex text-center mb-5 shadow-card border border-black/[0.04]">
         <div className="flex-1">
           <div className="text-2xl font-extrabold tracking-tighter text-success-600">{restTime}분</div>
           <div className="text-xs text-ink-500 mt-0.5">쉬신 시간</div>
@@ -112,7 +110,7 @@ export default function Resting() {
             {minutesLeft != null ? `${minutesLeft}분` : '—'}
           </div>
           <div className="text-xs text-ink-500 mt-0.5">
-            {minutesLeft != null ? `더 가시면 도착 · ${walk.name}` : '경로 없음'}
+            {minutesLeft != null ? '더 가시면 도착' : '경로 없음'}
           </div>
         </div>
       </div>

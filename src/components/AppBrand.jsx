@@ -10,19 +10,8 @@ export default function AppBrand() {
   if (location.pathname !== '/home') return null
 
   return (
-    <header className="flex items-center justify-between px-4 h-14 flex-shrink-0 bg-white">
-      <button
-        type="button"
-        aria-label="편한길"
-        className="flex items-center gap-1.5 bg-transparent border-0 p-0 active:scale-95"
-      >
-        <img
-          src="/pyeonhangil_icon_clean.png"
-          alt=""
-          className="w-10 h-10 object-contain"
-        />
-        <span className="text-[17px] font-extrabold text-ink-900 tracking-tight">편한길</span>
-      </button>
+    <header className="flex items-center justify-between px-5 min-h-[64px] flex-shrink-0 bg-white">
+      <h1 className="text-xl font-extrabold text-ink-900 tracking-normal">홈화면</h1>
 
       <button
         type="button"

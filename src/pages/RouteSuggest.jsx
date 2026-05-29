@@ -4,8 +4,7 @@ import {
   ChevronLeft, AlertTriangle, Check, X as XIcon, Map,
   Armchair, Bus, Database, Footprints, ShieldCheck, Train,
 } from 'lucide-react'
-import { useAppState, WALK_STATES } from '../hooks/useAppState'
-import { useVoice, useAutoAnnounce } from '../hooks/useVoice'
+import { useAppState } from '../hooks/useAppState'
 import { useHaptics } from '../hooks/useHaptics'
 import { useKakaoMap } from '../hooks/useKakaoMap'
 import { useGPS } from '../hooks/useGPS'
@@ -17,7 +16,7 @@ import { POI_TYPES } from '../data/pois'
 import { getActiveReports, reportToPoi, REPORT_TYPES } from '../services/reportsStore'
 import PoiDetailCard from '../components/PoiDetailCard'
 import { Button } from '../components/ui/button'
-import { IconBadge, poiIcon, hazardIcon, walkIcon, TONES } from '@/lib/catalog'
+import { IconBadge, poiIcon, hazardIcon, TONES } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 
 const SERVICE_TYPES = ['rest', 'toilet', 'elev', 'ramp', 'cross']
@@ -45,20 +44,11 @@ async function kakaoSuggest(query, center) {
   } catch { return [] }
 }
 
-const WALK_CHIP = {
-  older: 'bg-success-50 text-success-600',
-  wheelchair: 'bg-primary-50 text-primary',
-  visual: 'bg-warning-50 text-warning',
-  stroller: 'bg-walk-stroller-soft text-walk-stroller',
-  injured: 'bg-danger-50 text-danger',
-}
-
 export default function RouteSuggest() {
   const location = useLocation()
   const navigate = useNavigate()
   const mapRef = useRef(null)
   const { state, setDestination, setActiveRoute } = useAppState()
-  const { speak } = useVoice()
   const { vibrate } = useHaptics()
   const { position, hasPosition, error: gpsError, start } = useGPS({ enableStayDetection: false })
 
@@ -68,7 +58,6 @@ export default function RouteSuggest() {
       address: '서울 종로구 대학로 101',
       lat: 37.579617, lng: 126.998292,
     }
-  const walk = WALK_STATES[state.user.walkState] || WALK_STATES.older
 
   const [route, setRoute] = useState(null)
   const [routePois, setRoutePois] = useState([])
@@ -161,12 +150,12 @@ export default function RouteSuggest() {
   }, [route])
 
   const restStops = useMemo(
-    () => pickRestStops(route?.coords, routePois, { walkState: walk.id }),
-    [route?.coords, routePois, walk.id]
+    () => pickRestStops(route?.coords, routePois, { walkState: 'older' }),
+    [route?.coords, routePois]
   )
 
   const polylines = route?.coords?.length > 1
-    ? [{ path: route.coords, color: '#3182F6', weight: 7, opacity: 0.85 }] : []
+    ? [{ path: route.coords, color: '#3F52B4', weight: 7, opacity: 0.85 }] : []
 
   const startEndPois = []
   if (origin?.lat) {
@@ -193,25 +182,9 @@ export default function RouteSuggest() {
 
   const distanceMeters = route?.distanceMeters || 0
   const minutes = distanceMeters
-    ? Math.max(estimateMinutes(distanceMeters, walk.id), Math.round((route?.durationSeconds || 0) / 60))
-    : (walk.id === 'wheelchair' ? 30 : walk.id === 'visual' ? 24 : walk.id === 'injured' ? 24 : 20)
+    ? Math.max(estimateMinutes(distanceMeters), Math.round((route?.durationSeconds || 0) / 60))
+    : 20
 
-  useEffect(() => {
-    if (route) {
-      speak(`${destination.name}까지 ${minutes}분 걸리는 편한 길을 찾았어요`, {
-        onceKey: `route-found:${destination.name}:${Math.round(distanceMeters / 50)}`,
-      })
-    }
-    // eslint-disable-next-line
-  }, [route])
-
-  const restCountForSummary = routePois.filter((p) => p.type === 'rest').length
-  useAutoAnnounce(
-    route
-      ? `${destination.name}까지 ${minutes}분, 쉬어갈 곳 ${restCountForSummary}곳이에요. ` +
-        `이 길로 가시려면 화면 아래 큰 버튼을 누르세요.`
-      : '경로를 찾고 있어요'
-  )
 
   const handleStart = () => {
     setDestination(destination)
@@ -437,10 +410,6 @@ export default function RouteSuggest() {
               <span className="ml-2 text-sm text-ink-500 font-bold">· {formatDistance(distanceMeters)}</span>
             )}
           </div>
-          <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold mt-1', WALK_CHIP[walk.id])}>
-            {(() => { const { Icon } = walkIcon(walk.id); return <Icon className="w-3.5 h-3.5" strokeWidth={2.4} /> })()}
-            {walk.name} · 교통약자 유형 맞춤
-          </span>
           <div className="mt-4 space-y-2 text-sm">
             <Feature>
               {route?.source === 'tmap' && '걷는 구간은 실제 한국 보행자 도로를 기준으로 안내'}
