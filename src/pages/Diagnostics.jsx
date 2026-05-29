@@ -21,10 +21,10 @@ function Row({ status, label, detail, help }) {
       <div className="flex items-start gap-3">
         <tone.Icon className={cn('w-5 h-5 flex-shrink-0 mt-0.5', tone.color, status === STATUS.LOADING && 'animate-spin')} />
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-extrabold text-ink-900">{label}</div>
+          <div className="text-base font-bold text-ink-900">{label}</div>
           {detail && <div className="text-xs text-ink-700 mt-0.5 font-semibold break-all">{detail}</div>}
           {help && status !== STATUS.OK && (
-            <div className="text-[11px] text-ink-500 mt-1.5 leading-relaxed">{help}</div>
+            <div className="text-xs text-ink-500 mt-1.5 leading-relaxed">{help}</div>
           )}
         </div>
       </div>
@@ -135,8 +135,8 @@ export default function Diagnostics() {
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8 space-y-3">
         {/* 현재 환경 */}
         <div className="bg-white border border-black/[0.04] rounded-xl p-4 shadow-card">
-          <div className="text-[11px] font-extrabold text-ink-500 uppercase tracking-wider mb-2">현재 환경</div>
-          <div className="text-sm font-bold text-ink-900 break-all">{origin || '(unknown)'}</div>
+          <div className="text-xs font-extrabold text-ink-500 uppercase tracking-wider mb-2">현재 환경</div>
+          <div className="text-base font-bold text-ink-900 break-all">{origin || '(unknown)'}</div>
           <div className="text-xs text-ink-500 mt-1 font-semibold">
             {isLocalhost ? '로컬 개발 환경' : '배포 환경'} · 이 도메인이 카카오 콘솔 Web 플랫폼에 등록되어 있어야 합니다
           </div>
@@ -167,7 +167,7 @@ export default function Diagnostics() {
 
         {/* 미니 지도 미리보기 */}
         <div className="bg-white border border-black/[0.04] rounded-xl p-2 shadow-card">
-          <div className="text-[11px] font-extrabold text-ink-500 uppercase tracking-wider px-2 pt-1 pb-2">지도 미리보기 (서울 시청 좌표)</div>
+          <div className="text-xs font-extrabold text-ink-500 uppercase tracking-wider px-2 pt-1 pb-2">지도 미리보기 (서울 시청 좌표)</div>
           <div ref={mapRef} className="h-44 bg-ink-50 rounded-lg relative overflow-hidden">
             {!mapReady && !mapError && (
               <div className="absolute inset-0 grid place-items-center text-xs text-ink-500 font-semibold">불러오는 중…</div>
@@ -220,7 +220,7 @@ export default function Diagnostics() {
 
         {/* 외부 링크 */}
         <div className="bg-white border border-black/[0.04] rounded-xl p-4 shadow-card">
-          <div className="text-[11px] font-extrabold text-ink-500 uppercase tracking-wider mb-2">바로가기</div>
+          <div className="text-xs font-extrabold text-ink-500 uppercase tracking-wider mb-2">바로가기</div>
           <div className="grid grid-cols-1 gap-2">
             <a
               href="https://developers.kakao.com"

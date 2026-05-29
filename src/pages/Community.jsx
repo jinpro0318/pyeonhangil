@@ -126,7 +126,7 @@ export default function Community() {
               <Database className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-extrabold text-ink-900">제보는 즉시 지도에 반영돼요</div>
+              <div className="text-base font-bold text-ink-900">제보는 즉시 지도에 반영돼요</div>
               <div className="text-xs text-ink-500 font-semibold mt-1 leading-relaxed break-keep">
                 길 위험은 경로 추천 화면에서 경고로 표시되고, 편의시설은 모두의 지도에 마커로 추가됩니다.
               </div>
@@ -316,8 +316,8 @@ function ActionTile({ Icon, tone, title, desc, onClick }) {
       className="bg-white border border-ink-200 rounded-xl p-4 text-left active:scale-[0.98] transition-all hover:border-primary-200 hover:shadow-md min-h-[100px]"
     >
       <IconBadge Icon={Icon} tone={tone} size="sm" className="mb-2" />
-      <div className="text-[15px] font-extrabold text-ink-900">{title}</div>
-      <div className="text-[11px] text-ink-500 font-semibold mt-0.5 leading-snug">{desc}</div>
+      <div className="text-base font-bold text-ink-900">{title}</div>
+      <div className="text-xs text-ink-500 font-semibold mt-0.5 leading-snug">{desc}</div>
     </button>
   )
 }

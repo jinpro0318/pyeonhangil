@@ -225,7 +225,7 @@ export default function RouteSuggest() {
               <Bus className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-extrabold text-ink-900">통합 이동 경로</div>
+              <div className="text-base font-bold text-ink-900">통합 이동 경로</div>
               <div className="text-xs text-ink-500 font-semibold mt-1 leading-relaxed break-keep">
                 걷는 구간과 대중교통 연결을 나누어 고르지 않아도 되도록 한 번에 안내합니다.
               </div>
@@ -240,7 +240,7 @@ export default function RouteSuggest() {
 
         {!origin?.lat && (
           <div className="bg-warning-50 border border-warning/30 rounded-xl p-4 mb-4">
-            <div className="text-sm font-extrabold text-ink-900">출발지를 확인하고 있어요</div>
+            <div className="text-base font-bold text-ink-900">출발지를 확인하고 있어요</div>
             <div className="text-xs text-ink-500 font-semibold mt-1 leading-relaxed break-keep">
               {gpsError
                 ? '위치 권한이 꺼져 있으면 출발지를 직접 입력해 주세요.'
@@ -257,7 +257,7 @@ export default function RouteSuggest() {
                 <AlertTriangle className="w-6 h-6" strokeWidth={2.5} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-extrabold text-ink-900">
+                <div className="text-base font-bold text-ink-900">
                   이 경로에 위험 {nearbyHazards.length}건이 있어요
                 </div>
                 <div className="text-xs text-ink-700 font-semibold mt-0.5 leading-relaxed break-keep">
@@ -539,7 +539,7 @@ function RouteField({ dot, placeholder, value, strong, onChange, onFocus, onBlur
               onClick={() => onPick(s)}
               className="flex flex-col px-4 py-3 hover:bg-primary-50 cursor-pointer border-b border-ink-50 last:border-b-0"
             >
-              <b className="text-[15px] font-bold">{s.name}</b>
+              <b className="text-base font-bold">{s.name}</b>
               {s.address && <span className="text-xs text-ink-500 mt-0.5">{s.address}</span>}
             </li>
           ))}

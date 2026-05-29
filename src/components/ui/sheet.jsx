@@ -59,7 +59,7 @@ const SheetHeader = ({ className, ...props }) => (
   <div className={cn('flex flex-col space-y-1.5 mb-4', className)} {...props} />
 )
 const SheetTitle = React.forwardRef(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title ref={ref} className={cn('text-xl font-extrabold tracking-tight', className)} {...props} />
+  <DialogPrimitive.Title ref={ref} className={cn('text-lg font-extrabold tracking-tight', className)} {...props} />
 ))
 SheetTitle.displayName = 'SheetTitle'
 const SheetDescription = React.forwardRef(({ className, ...props }, ref) => (

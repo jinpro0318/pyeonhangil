@@ -23,7 +23,7 @@ export default function PageHeader({ title, backTo, onBack, action, transparent 
       >
         <ChevronLeft className="w-6 h-6" />
       </button>
-      <div className="flex-1 text-lg font-bold tracking-normal">{title}</div>
+      <div className="flex-1 text-xl font-extrabold tracking-tight">{title}</div>
       {action && (
         <button
           onClick={action.onClick}

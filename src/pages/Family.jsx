@@ -82,7 +82,7 @@ export default function Family() {
     <>
       <div className="flex-1 flex flex-col overflow-hidden bg-white">
         <div className="min-h-[64px] px-[22px] flex items-center">
-          <h2 className="text-2xl font-extrabold tracking-normal">우리 가족</h2>
+          <h2 className="text-xl font-extrabold tracking-normal">우리 가족</h2>
         </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-6 space-y-3">
@@ -92,7 +92,7 @@ export default function Family() {
             </div>
             <div>
               <div className="text-sm text-primary font-semibold">안심 공유</div>
-              <div className="text-[17px] font-extrabold mt-0.5">
+              <div className="text-base font-bold mt-0.5">
                 연결된 가족에게 자동으로 알려드려요
               </div>
             </div>
@@ -148,7 +148,7 @@ export default function Family() {
           {family.length === 0 && (
             <div className="py-10 flex flex-col items-center text-center text-ink-500">
               <IconBadge Icon={UsersRound} tone="primary" size="2xl" className="mb-3 opacity-90" />
-              <div className="text-[17px] font-bold text-ink-700 mb-1">아직 연결된 가족이 없어요</div>
+              <div className="text-2xl font-extrabold text-ink-700 mb-1">아직 연결된 가족이 없어요</div>
               <div className="text-sm leading-relaxed">
                 가족을 초대하면 외출·도착·SOS 때<br />자동으로 알림이 가요
               </div>
@@ -174,7 +174,7 @@ export default function Family() {
                   {f.name[0]}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[17px] font-bold truncate">
+                  <div className="text-base font-bold truncate">
                     {f.relation ? `${f.relation} ${f.name}` : f.name}
                   </div>
                   <div

@@ -99,11 +99,11 @@ export default function Intro() {
           </div>
         )}
 
-        <h1 className="text-[32px] leading-[1.18] font-extrabold tracking-normal whitespace-pre-line mb-4">
+        <h1 className="text-2xl leading-[1.18] font-extrabold tracking-normal whitespace-pre-line mb-4">
           {current.title}
         </h1>
 
-        <p className="text-base text-ink-500 font-semibold leading-relaxed break-keep whitespace-pre-line">
+        <p className="text-sm text-ink-500 leading-relaxed break-keep whitespace-pre-line">
           {current.sub}
         </p>
 
@@ -115,7 +115,7 @@ export default function Intro() {
                 className="flex flex-col gap-2.5 bg-white border border-black/[0.04] rounded-xl px-4 py-4 shadow-card"
               >
                 <IconBadge Icon={Icon} tone={tone} size="sm" />
-                <span className="text-[14px] font-extrabold text-ink-800 leading-snug break-keep">{label}</span>
+                <span className="text-base font-bold text-ink-800 leading-snug break-keep">{label}</span>
               </div>
             ))}
           </div>

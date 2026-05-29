@@ -58,8 +58,8 @@ export default function Arrived() {
         <CheckCircle2 className="w-16 h-16 text-white" strokeWidth={2} />
       </div>
 
-      <div className="text-3xl font-extrabold tracking-tighter text-ink-900 mb-2">도착했어요!</div>
-      <div className="text-base text-ink-500 font-semibold mb-7">{destination}</div>
+      <div className="text-2xl font-extrabold tracking-tighter text-ink-900 mb-2">도착했어요!</div>
+      <div className="text-sm text-ink-500 mb-7">{destination}</div>
 
       <div className="w-full bg-white rounded-3xl p-5 shadow-card border border-black/[0.04] mb-4">
         <div className="text-xs font-bold text-ink-500 text-center mb-3">수고 많으셨어요</div>
@@ -86,7 +86,7 @@ export default function Arrived() {
             <Bell className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[15px] font-bold text-ink-900">
+            <div className="text-base font-bold text-ink-900">
               {primaryFamily.name}님에게 자동으로 알렸어요
             </div>
             <div className="text-sm text-ink-500 mt-0.5">"무사히 도착하셨어요"</div>
@@ -98,7 +98,7 @@ export default function Arrived() {
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[15px] font-bold text-ink-900">가족 알림이 꺼져 있어요</div>
+            <div className="text-base font-bold text-ink-900">가족 알림이 꺼져 있어요</div>
             <div className="text-sm text-ink-500 mt-0.5">가족 탭에서 SOS 알림을 켜주세요</div>
           </div>
         </div>

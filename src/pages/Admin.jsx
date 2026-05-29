@@ -82,7 +82,7 @@ export default function Admin() {
             </div>
             <div className="min-w-0">
               <div className="text-xs font-bold text-white/65 mb-1">ADMIN CONSOLE</div>
-              <div className="text-lg font-extrabold">편한길 운영 관리</div>
+              <div className="text-base font-bold">편한길 운영 관리</div>
               <div className="text-xs text-white/65 mt-1 truncate">{user?.email}</div>
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function Admin() {
                   <IconBadge Icon={ic.Icon} tone={ic.tone} size="sm" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="font-extrabold text-ink-900">{meta.label}</div>
+                      <div className="text-base font-bold text-ink-900">{meta.label}</div>
                       <button
                         onClick={() => handleRemoveReport(r)}
                         aria-label="제보 삭제"

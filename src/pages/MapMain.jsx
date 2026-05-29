@@ -14,6 +14,7 @@ import { poiIcon, TONES } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 
 const FILTERS = ['rest', 'toilet', 'elev', 'cross', 'hospital', 'pharmacy', 'subway', 'public']
+const GPS_DECIDED_KEY = 'pyeonhangil_gps_decided'
 
 function quantize(p, precision = 3) {
   if (!p) return null
@@ -33,7 +34,21 @@ export default function MapMain() {
   const { position, start, isTracking } = useGPS({ enableStayDetection: false })
   const [userFacilities, setUserFacilities] = useState(() => getActiveFacilities())
 
-  useEffect(() => { start() }, [start])
+  // 지도 진입 시 위치 권한 허용 여부를 팝업으로 확인 (한 번 결정하면 다시 안 뜸)
+  const [showGpsAsk, setShowGpsAsk] = useState(() => {
+    try { return localStorage.getItem(GPS_DECIDED_KEY) !== '1' } catch { return true }
+  })
+  useEffect(() => {
+    let decided = false
+    try { decided = localStorage.getItem(GPS_DECIDED_KEY) === '1' } catch {}
+    if (decided) start()
+  }, [start])
+
+  const decideGps = (allow) => {
+    try { localStorage.setItem(GPS_DECIDED_KEY, '1') } catch {}
+    setShowGpsAsk(false)
+    if (allow) start()
+  }
 
   // 다른 화면에서 편의시설 제보가 추가되면 포커스 복귀 시 갱신
   useEffect(() => {
@@ -79,7 +94,7 @@ export default function MapMain() {
   return (
     <>
       <div className="flex-1 relative overflow-hidden flex flex-col">
-        <div ref={mapRef} className="map-container absolute inset-0 bg-ink-50 touch-none">
+        <div ref={mapRef} className="map-container absolute inset-0 bg-ink-50">
           {!isReady && !error && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-ink-500 text-sm font-semibold">
               <div className="w-9 h-9 border-4 border-ink-200 border-t-primary rounded-full animate-spin" />
@@ -181,6 +196,24 @@ export default function MapMain() {
         <SOSButton bottom={250} />
       </div>
       <TabBar />
+
+      {showGpsAsk && (
+        <div className="absolute inset-0 z-[210] bg-ink-900/45 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
+          <div className="w-full max-w-[320px] bg-white rounded-[20px] shadow-xl p-6 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-primary-50 text-primary grid place-items-center mx-auto mb-4">
+              <MapPin className="w-8 h-8" strokeWidth={2.2} />
+            </div>
+            <h2 className="text-lg font-extrabold text-ink-900 mb-2">위치 사용을 허용할까요?</h2>
+            <p className="text-sm text-ink-500 leading-relaxed mb-5">
+              현재 위치를 알아야 지도에서 가까운 쉼터·화장실·엘리베이터와 편한 길을 안내해 드릴 수 있어요.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button className="w-full" onClick={() => decideGps(true)}>위치 사용 허용</Button>
+              <Button variant="secondary" className="w-full" onClick={() => decideGps(false)}>나중에 할게요</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

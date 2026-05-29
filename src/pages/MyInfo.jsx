@@ -77,7 +77,7 @@ export default function MyInfo() {
 
           <section className="bg-white border border-ink-200 rounded-xl p-4 shadow-sm mb-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-extrabold text-ink-900">안심 상태</div>
+              <div className="text-base font-bold text-ink-900">안심 상태</div>
               <span className={cn(
                 'text-xs font-bold rounded-full px-2.5 py-1',
                 sosCount > 0 ? 'bg-success-50 text-success-600' : 'bg-warning-50 text-warning'
@@ -145,7 +145,7 @@ export default function MyInfo() {
             <span className="inline-grid place-items-center w-10 h-10 rounded-lg bg-ink-50 text-ink-500 shrink-0">
               <LogOut className="w-5 h-5" />
             </span>
-            <div className="text-[15px] font-extrabold text-ink-900">로그아웃</div>
+            <div className="text-base font-bold text-ink-900">로그아웃</div>
           </button>
 
           <div className="text-center text-xs text-ink-400 font-semibold mt-6">편한길 v1.0.0</div>
@@ -209,7 +209,7 @@ function ActionRow({ Icon, tone, title, desc, onClick }) {
         ? <span aria-hidden="true" className="inline-grid place-items-center shrink-0 w-11 h-11 rounded-lg bg-ink-50 text-ink-700 [&_svg]:w-5 [&_svg]:h-5"><Icon strokeWidth={2.2} /></span>
         : <IconBadge Icon={Icon} tone={tone} size="md" className="rounded-lg" />}
       <div className="flex-1 min-w-0">
-        <div className="text-[16px] font-extrabold text-ink-900">{title}</div>
+        <div className="text-base font-bold text-ink-900">{title}</div>
         <div className="text-sm text-ink-500 mt-0.5 truncate">{desc}</div>
       </div>
       <ChevronRight className="w-5 h-5 text-ink-400 flex-shrink-0" />

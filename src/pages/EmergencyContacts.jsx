@@ -113,7 +113,7 @@ export default function EmergencyContacts() {
         {!showForm && contacts.length === 0 && (
           <div className="py-12 flex flex-col items-center text-center text-ink-500">
             <IconBadge Icon={Phone} tone="danger" size="2xl" className="mb-3 opacity-90" />
-            <div className="text-[17px] font-bold text-ink-700 mb-1.5">등록된 연락처가 없어요</div>
+            <div className="text-2xl font-extrabold text-ink-700 mb-1.5">등록된 연락처가 없어요</div>
             <div className="text-sm leading-relaxed">
               긴급 상황 때 빠르게 도움받을 수 있도록<br />
               가족이나 친구를 등록해주세요
@@ -134,7 +134,7 @@ export default function EmergencyContacts() {
                     {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[17px] font-bold truncate">
+                    <div className="text-base font-bold truncate">
                       {c.name} <span className="text-sm text-ink-500 font-medium">({c.relation})</span>
                     </div>
                     <div className="text-sm text-ink-500 mt-0.5 tabular-nums">{formatPhone(c.phone)}</div>

@@ -1,36 +1,37 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Keyboard, Mic, Plus, MapPin } from 'lucide-react'
+import { Keyboard, Mic, Plus, LogIn } from 'lucide-react'
 import { useAppState } from '../hooks/useAppState'
-import { useGPS } from '../hooks/useGPS'
+import { useAuth } from '../hooks/useAuth'
 import TabBar from '../components/TabBar'
 import SOSButton from '../components/SOSButton'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
 import { IconBadge, favoriteIcon } from '@/lib/catalog'
 
-const GPS_DECIDED_KEY = 'pyeonhangil_gps_decided'
+const LOGIN_PROMPTED_KEY = 'pyeonhangil_login_prompted'
 
 export default function Home() {
   const navigate = useNavigate()
   const { state } = useAppState()
-  const { hasPosition, error: gpsError, start } = useGPS({ enableStayDetection: false })
+  const { user, loading } = useAuth()
 
-  const [showGpsAsk, setShowGpsAsk] = useState(() => {
-    try { return localStorage.getItem(GPS_DECIDED_KEY) !== '1' } catch { return true }
-  })
-
-  // 위치 권한을 이미 결정한 경우에만 자동으로 GPS 시작
+  // 미로그인 사용자에게는 홈 진입 시 로그인 유도 팝업 (세션당 1회)
+  const [showLoginAsk, setShowLoginAsk] = useState(false)
   useEffect(() => {
-    let decided = false
-    try { decided = localStorage.getItem(GPS_DECIDED_KEY) === '1' } catch {}
-    if (decided) start()
-  }, [start])
+    if (loading) return
+    let prompted = false
+    try { prompted = sessionStorage.getItem(LOGIN_PROMPTED_KEY) === '1' } catch {}
+    if (!user && !prompted) setShowLoginAsk(true)
+  }, [loading, user])
 
-  const decideGps = (allow) => {
-    try { localStorage.setItem(GPS_DECIDED_KEY, '1') } catch {}
-    setShowGpsAsk(false)
-    if (allow) start()
+  const dismissLogin = () => {
+    try { sessionStorage.setItem(LOGIN_PROMPTED_KEY, '1') } catch {}
+    setShowLoginAsk(false)
+  }
+  const goLogin = () => {
+    try { sessionStorage.setItem(LOGIN_PROMPTED_KEY, '1') } catch {}
+    navigate('/login', { state: { from: '/home' } })
   }
 
   return (
@@ -38,13 +39,8 @@ export default function Home() {
       <div className="flex-1 flex flex-col overflow-hidden bg-white">
         {/* 상단 사용자 상태 (로그인 버튼은 AppBrand 헤더로 이동) */}
         <div className="px-[22px] pt-1 pb-3 flex flex-col gap-2 flex-shrink-0 bg-white">
-          <div className="text-sm text-ink-700 font-extrabold">
+          <div className="text-sm text-ink-700">
             {state.user.name}님의 안전한 이동을 도와드립니다.
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="gps-indicator">
-              <div className="gps-dot" /> {hasPosition ? 'GPS 켜짐' : gpsError ? '위치 확인 필요' : 'GPS 확인 중'}
-            </div>
           </div>
         </div>
 
@@ -63,7 +59,7 @@ export default function Home() {
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-bold opacity-80">말씀하시면 들어요</div>
-                <div className="text-base font-extrabold truncate">어디로 가세요?</div>
+                <div className="text-base font-bold truncate">어디로 가세요?</div>
               </div>
             </button>
             <button
@@ -75,7 +71,7 @@ export default function Home() {
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-bold text-ink-500">직접 입력할게요</div>
-                <div className="text-base font-extrabold text-ink-900 truncate">글자로 입력하기</div>
+                <div className="text-base font-bold text-ink-900 truncate">글자로 입력하기</div>
               </div>
             </button>
           </div>
@@ -112,19 +108,19 @@ export default function Home() {
       </div>
       <TabBar />
 
-      {showGpsAsk && (
+      {showLoginAsk && (
         <div className="absolute inset-0 z-[200] bg-ink-900/45 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
           <div className="w-full max-w-[320px] bg-white rounded-[20px] shadow-xl p-6 text-center">
             <div className="w-16 h-16 rounded-2xl bg-primary-50 text-primary grid place-items-center mx-auto mb-4">
-              <MapPin className="w-8 h-8" strokeWidth={2.2} />
+              <LogIn className="w-8 h-8" strokeWidth={2.2} />
             </div>
-            <h2 className="text-lg font-extrabold text-ink-900 mb-2">위치 사용을 허용할까요?</h2>
-            <p className="text-sm text-ink-500 font-semibold leading-relaxed mb-5">
-              현재 위치를 알아야 가까운 쉼터·화장실·엘리베이터와 편한 길을 안내해 드릴 수 있어요.
+            <h2 className="text-lg font-extrabold text-ink-900 mb-2">로그인 하시겠습니까?</h2>
+            <p className="text-sm text-ink-500 leading-relaxed mb-5">
+              로그인하면 즐겨찾기와 가족 안심 알림을 안전하게 이어서 쓸 수 있어요.
             </p>
             <div className="flex flex-col gap-2">
-              <Button className="w-full" onClick={() => decideGps(true)}>위치 사용 허용</Button>
-              <Button variant="secondary" className="w-full" onClick={() => decideGps(false)}>나중에 할게요</Button>
+              <Button className="w-full" onClick={goLogin}>로그인 / 회원가입</Button>
+              <Button variant="secondary" className="w-full" onClick={dismissLogin}>나중에 할게요</Button>
             </div>
           </div>
         </div>

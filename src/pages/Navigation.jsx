@@ -181,7 +181,7 @@ export default function Navigation() {
               <ShieldCheck className="w-5 h-5 text-success-600" />
             </div>
             <div>
-              <div className="text-sm font-extrabold text-ink-900">
+              <div className="text-base font-bold text-ink-900">
                 경로 주변 편의시설 {nearbyPois.length}곳 확인 중
               </div>
               <div className="text-xs text-ink-500 font-semibold mt-1 break-keep leading-relaxed">

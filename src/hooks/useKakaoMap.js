@@ -222,12 +222,13 @@ export function useKakaoMap(containerRef, options = {}) {
           center: new kakao.maps.LatLng(center.lat, center.lng),
           level,
           draggable,
+          scrollwheel: true,
         })
         mapRef.current = mapInstance
 
-        // 확대/축소: 핀치 + 휠 + 더블탭 전부 보장
-        mapInstance.setZoomable(true)
+        // 드래그 이동 + 확대/축소(핀치·휠·더블탭) 전부 활성화
         mapInstance.setDraggable(draggable)
+        mapInstance.setZoomable(true)
 
         // +/- 줌 컨트롤 (손가락으로 조작하기 좋게)
         try {

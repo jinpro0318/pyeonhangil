@@ -45,8 +45,8 @@ export default function Permissions() {
   return (
     <div className="flex-1 flex flex-col px-6 pt-10 pb-6 pl-6 bg-background">
       <div className="pl-[64px] mb-8">
-        <h1 className="text-3xl font-extrabold tracking-normal mb-2">준비가 거의 됐어요</h1>
-        <p className="text-base text-ink-500 font-semibold">편한 길 안내를 위해 아래 세 가지가 필요해요</p>
+        <h1 className="text-2xl font-extrabold tracking-normal mb-2">준비가 거의 됐어요</h1>
+        <p className="text-sm text-ink-500">편한 길 안내를 위해 아래 세 가지가 필요해요</p>
       </div>
 
       <div className="flex-1 space-y-3">
@@ -62,7 +62,7 @@ export default function Permissions() {
             >
               <IconBadge Icon={it.Icon} tone={it.tone} size="md" />
               <div className="flex-1 min-w-0">
-                <div className="text-[17px] font-bold">{it.title}</div>
+                <div className="text-base font-bold">{it.title}</div>
                 <div className="text-sm text-ink-500 mt-0.5">{it.desc}</div>
               </div>
               {granted ? (

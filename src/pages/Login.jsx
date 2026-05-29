@@ -88,7 +88,7 @@ export default function Login() {
           <h1 className="text-2xl font-extrabold mb-1.5">
             편한길에 오신 것을 환영합니다
           </h1>
-          <p className="text-sm text-ink-500 font-semibold">
+          <p className="text-sm text-ink-500">
             {isSignUp
               ? '이메일로 간단하게 시작하세요'
               : '이메일과 비밀번호로 로그인해 주세요'}

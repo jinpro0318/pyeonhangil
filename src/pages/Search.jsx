@@ -137,7 +137,7 @@ export default function Search() {
 
         {/* 헤더 */}
         <div className="min-h-[56px] flex items-center gap-3 px-5 flex-shrink-0">
-          <h2 className="flex-1 text-xl font-extrabold tracking-normal">
+          <h2 className="flex-1 text-lg font-extrabold tracking-normal">
             {mode === 'voice' ? '목적지를 말씀해 주세요' : '갈 수 있는 길 찾기'}
           </h2>
           <button
@@ -183,7 +183,7 @@ export default function Search() {
               >
                 <Mic className="w-8 h-8" strokeWidth={2.5} />
               </button>
-              <p className="mt-4 text-sm text-ink-500 font-semibold text-center">다시 말씀하시려면 눌러주세요</p>
+              <p className="mt-4 text-sm text-ink-500 text-center">다시 말씀하시려면 눌러주세요</p>
 
               {(hasSearched || results.length > 0) && (
                 <div className="mt-6">

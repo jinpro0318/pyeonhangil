@@ -29,7 +29,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="std-page flex-1 flex flex-col bg-background overflow-hidden">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden">
       <PageHeader title="화면 설정" />
 
       <div className="flex-1 overflow-y-auto no-scrollbar p-4 pb-8">
@@ -67,7 +67,7 @@ export default function Settings() {
                   가
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="text-[17px] font-bold">{f.label}</div>
+                  <div className="text-base font-bold">{f.label}</div>
                   <div className="text-sm text-ink-500 mt-0.5">
                     {f.scale === 1 ? '기본 크기' : `${Math.round(f.scale * 100)}% 크기`}
                   </div>

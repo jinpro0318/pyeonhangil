@@ -50,8 +50,8 @@ export default function SOS() {
   return (
     <div className="flex-1 bg-danger text-white flex flex-col px-5 pt-14 pb-6 gap-5">
       <div className="text-center">
-        <div className="text-[15px] font-bold opacity-90 tracking-widest mb-1.5">긴급 도움</div>
-        <h1 className="text-[30px] font-extrabold tracking-tighter leading-tight">
+        <div className="text-xs font-bold opacity-90 tracking-widest mb-1.5">긴급 도움</div>
+        <h1 className="text-2xl font-extrabold tracking-tighter leading-tight">
           어떤 도움이<br />필요하세요?
         </h1>
       </div>
@@ -112,7 +112,7 @@ function SosBtn({ Icon, tone, title, sub, onClick }) {
         <Icon className="w-7 h-7" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-lg font-extrabold tracking-tight">{title}</div>
+        <div className="text-base font-bold tracking-tight">{title}</div>
         <div className={`text-sm mt-0.5 truncate ${tone === 'primary' ? 'text-ink-500' : 'opacity-85'}`}>
           {sub}
         </div>

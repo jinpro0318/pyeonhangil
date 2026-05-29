@@ -143,7 +143,7 @@ export default function Favorites() {
             {state.favorites.length === 0 ? (
               <div className="py-12 flex flex-col items-center text-center text-ink-500">
                 <Star className="w-12 h-12 mb-3 opacity-50" />
-                <div className="text-[17px] font-bold text-ink-700 mb-1.5">등록된 곳이 없어요</div>
+                <div className="text-2xl font-extrabold text-ink-700 mb-1.5">등록된 곳이 없어요</div>
                 <div className="text-sm leading-relaxed">
                   자주 가는 병원·집·마트 등을 등록하면<br />
                   홈에서 한 번에 갈 수 있어요

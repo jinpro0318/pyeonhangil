@@ -74,10 +74,10 @@ export default function Resting() {
         <div className="inline-flex items-center gap-1 text-xs font-bold text-success-600 bg-white px-3 py-1.5 rounded-full mb-3">
           <MapPin className="w-3.5 h-3.5" /> GPS로 인식했어요
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tighter text-ink-900 mb-3">
+        <h1 className="text-2xl font-extrabold tracking-tighter text-ink-900 mb-3">
           쉬고 계시네요
         </h1>
-        <p className="text-base text-ink-700 font-semibold leading-relaxed">
+        <p className="text-sm text-ink-700 leading-relaxed">
           충분히 쉬시고<br />천천히 일어나서 걸어가세요
         </p>
       </div>
@@ -87,7 +87,7 @@ export default function Resting() {
           <Play className="w-5 h-5" />
         </div>
         <div className="flex-1">
-          <div className="text-[15px] font-bold text-ink-900">다시 걸으시면 자동 재개</div>
+          <div className="text-base font-bold text-ink-900">다시 걸으시면 자동 재개</div>
           <div className="text-xs text-ink-500 mt-0.5 leading-snug">
             아무것도 누르지 마세요. GPS가 이동을 감지하면 바로 안내해요
           </div>

@@ -36,7 +36,7 @@ export default function Splash() {
       <div className="flex-1 flex flex-col items-center justify-center bg-white text-ink-900 animate-fade-in px-8 text-center">
         <IconBadge Icon={HeartHandshake} tone="primary" size="2xl" className="mb-5" />
         <h1 className="text-2xl font-extrabold tracking-normal mb-2">가족 안심 초대</h1>
-        <p className="text-[15px] text-ink-600 font-semibold leading-relaxed mb-8 break-keep whitespace-pre-line">
+        <p className="text-sm text-ink-600 leading-relaxed mb-8 break-keep whitespace-pre-line">
           {invite == null
             ? '초대를 확인하고 있어요…'
             : accepted
@@ -79,7 +79,7 @@ export default function Splash() {
         </div>
         <div className="text-center">
           <h1 className="text-5xl font-extrabold tracking-normal mb-4">편한길</h1>
-          <p className="text-[15px] text-ink-500 font-semibold leading-relaxed">
+          <p className="text-sm text-ink-500 leading-relaxed">
             당신의 걸음이 더 안전하고 편안하도록
           </p>
         </div>
